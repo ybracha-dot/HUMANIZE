@@ -9,7 +9,7 @@ import { extractJson } from '../../shared/proposals.ts';
 const estimateTokens = (s: string) => Math.ceil(s.length / 3.2); // conservative for English prose
 
 async function postJson(url: string, headers: Record<string, string>, body: unknown, timeoutMs: number, signal?: AbortSignal) {
-  const ctl = AbortSignal.timeout(timeoutMs);
+  const ctl = AbortSignal.timeout(Number(process.env.STUDIO_PROVIDER_TIMEOUT_MS) || timeoutMs);
   const combined = signal ? AbortSignal.any([ctl, signal]) : ctl;
   let res: Response;
   try {
@@ -43,7 +43,7 @@ async function withRetry<T>(fn: () => Promise<T>, attempts = 4, baseMs = 500, sl
 
 export class AnthropicProvider implements Provider {
   vendor = 'anthropic' as const; paid = true;
-  constructor(public model: string, private key: string, private baseUrl = process.env.ANTHROPIC_BASE_URL ?? 'https://api.anthropic.com', private maxOut = 4096) {}
+  constructor(public model: string, private key: string, private baseUrl = process.env.ANTHROPIC_BASE_URL ?? 'https://api.anthropic.com', private maxOut = Number(process.env.STUDIO_MAX_OUTPUT_TOKENS) || 4096) {}
   get id() { return `anthropic:${this.model}`; }
   estimate(role: Role, input: any) { const p = buildPrompt(role, input); return { inputTokens: estimateTokens(p.system + p.user), outputTokens: this.maxOut }; }
   async call(role: Role, input: any, ctl: CallControl = {}): Promise<CallResult> {
@@ -57,7 +57,7 @@ export class AnthropicProvider implements Provider {
 
 export class OpenAIProvider implements Provider {
   vendor = 'openai' as const; paid = true;
-  constructor(public model: string, private key: string, private baseUrl = process.env.OPENAI_BASE_URL ?? 'https://api.openai.com', private maxOut = 4096) {}
+  constructor(public model: string, private key: string, private baseUrl = process.env.OPENAI_BASE_URL ?? 'https://api.openai.com', private maxOut = Number(process.env.STUDIO_MAX_OUTPUT_TOKENS) || 4096) {}
   get id() { return `openai:${this.model}`; }
   estimate(role: Role, input: any) { const p = buildPrompt(role, input); return { inputTokens: estimateTokens(p.system + p.user), outputTokens: this.maxOut }; }
   async call(role: Role, input: any, ctl: CallControl = {}): Promise<CallResult> {

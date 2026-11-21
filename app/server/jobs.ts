@@ -142,8 +142,10 @@ export function cancelRun(c: Ctx, runId: string) {
   need(own(c.db, 'runs', runId, c.ws));
   tx(c.db, () => {
     run(c.db, 'UPDATE runs SET cancel_requested=1 WHERE id=? AND workspace_id=?', runId, c.ws);
-    run(c.db, "UPDATE run_stages SET status='skipped' WHERE run_id=? AND workspace_id=? AND status IN ('pending','ready','blocked')", runId, c.ws);
-    run(c.db, "UPDATE runs SET status='canceled', finished_at=? WHERE id=? AND workspace_id=? AND status IN ('queued','blocked','paused')", clock.now(), runId, c.ws);
+    // pending/ready/blocked stages, and stages abandoned by a dead worker (expired lease), will never run now
+    run(c.db, "UPDATE run_stages SET status='skipped', lease_token=NULL WHERE run_id=? AND workspace_id=? AND (status IN ('pending','ready','blocked') OR (status='leased' AND lease_expires_at<?))", runId, c.ws, clock.now());
+    // if a worker is still executing a live stage, it finalizes the cancel when that stage ends; otherwise finish now
+    run(c.db, "UPDATE runs SET status='canceled', finished_at=? WHERE id=? AND workspace_id=? AND status IN ('queued','running','blocked') AND NOT EXISTS (SELECT 1 FROM run_stages WHERE run_id=? AND status='leased')", clock.now(), runId, c.ws, runId);
   });
 }
 export function pauseRun(c: Ctx, runId: string, paused: boolean) {

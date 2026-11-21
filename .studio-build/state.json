@@ -1,19 +1,28 @@
 {
   "status": "working",
-  "milestone": "M3",
+  "milestone": "M6",
   "evidence": [
     "M0: app scaffolded (Vite/React/TS/Tailwind, Hono API, node:sqlite); sample assignment fixtures generated; npm run typecheck and npm test pass",
     "M1: PDF/MD/TXT/DOCX ingest with printed page labels distinct from viewer index; brief items carry exact source quotes and conflicts; unreadable and scanned files fail per file with remedy (integration test passed)",
     "M2: note -> 2 thesis options -> outline -> reviewable draft; thesis lock refuses revise; persisted and reopened (integration test passed)",
-    "M3 (core): Quick review through durable queue; causal rewrite flagged causal_introduced; precise limitation accepted; double-click yields one revision (integration test passed)"
+    "M3 (core): Quick review through durable queue; causal rewrite flagged causal_introduced; precise limitation accepted; double-click yields one revision (integration test passed)",
+    "M3: causal-overstatement fixture fails for the correct reason (causal_introduced + partial/association-not-cause); ambiguous claims stay unresolved; two-tab same-sentence accept returns overlaps_accepted_change conflict with preview and writes nothing",
+    "M6 (backend): SIGKILL of a real worker process mid-stage recovered by a second worker after lease expiry, one output per stage, no duplicate proposals or revisions (integration test passed, Linux, Node 22.23)",
+    "M6 (backend): tenant isolation verified for unrelated user, read-only member and anonymous caller across 11 read routes and 6 write routes; prompt-injection PDF stored as data, secret never echoed",
+    "M7 (adapters): Anthropic/OpenAI adapters verified against a local HTTP mock only (retry on 429, timeout => uncertain spend, schema repair, price gating, budget degradation, independence labelling). NOT a live-provider run: no keys in this environment"
   ],
-  "next": "Add atomic/two-tab conflict, isolation, durable-queue kill tests (M6 backend), then UI, StoryScope manifest, extension notes, demo smoke in Chromium.",
+  "next": "Build the React UI (home, course, workspace editor with source jump, decision queue, history/compare, settings), Chromium smoke test, StoryScope manifest, skills/hygiene notes, extension notes, Supabase RLS migration test, handoff docs.",
   "blockers": [],
   "verification": [
     {
       "command": "npm run typecheck && npm test",
       "outcome": "passed",
       "scope": "fixture mode, 52 tests"
+    },
+    {
+      "command": "npx vitest run",
+      "outcome": "passed",
+      "scope": "fixture mode + local HTTP mock, 69 tests"
     }
   ]
 }

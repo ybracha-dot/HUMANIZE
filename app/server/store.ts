@@ -470,10 +470,17 @@ export function decideProposal(c: Ctx, proposalId: string, input: { action: 'acc
     const locks = activeLocks(c, prop.documentId);
     const applied = applyProposal({ ...prop, replacement }, head.paragraphs, locks);
     const baseText = baseRev.paragraphs.find((p) => p.id === prop.paragraphId)?.text ?? null;
-    if (!applied.ok) {
+    // A change accepted since this suggestion was made that touched the same range is a conflict even if the original text
+    // is still present (e.g. the first edit extended the sentence). Never silently stack two rewrites of one sentence.
+    const clash = applied.ok && all(c.db, "SELECT start, original, base_revision FROM proposals WHERE workspace_id=? AND document_id=? AND paragraph_id=? AND decision IN ('accepted','edited') AND id<>? AND resolved_at>=?", c.ws, prop.documentId, prop.paragraphId, proposalId, prop.createdAt)
+      .some((o) => o.base_revision === prop.baseRevision && prop.start < o.start + o.original.length && prop.start + prop.original.length > o.start);
+    if (!applied.ok || clash) {
+      const reason = applied.ok ? 'overlaps_accepted_change' : applied.reason;
+      const detail = applied.ok ? 'Another suggestion for this same sentence was already accepted.' : applied.detail;
       run(c.db, "UPDATE proposals SET decision='conflict' WHERE id=? AND workspace_id=?", proposalId, c.ws);
-      return { status: 'conflict', conflict: { reason: applied.reason, detail: applied.detail, baseText, headText: head.paragraphs.find((p) => p.id === prop.paragraphId)?.text ?? null, replacement } };
+      return { status: 'conflict', conflict: { reason, detail, baseText, headText: head.paragraphs.find((p) => p.id === prop.paragraphId)?.text ?? null, replacement } };
     }
+    if (!applied.ok) throw new HttpError(500, 'unreachable', 'unreachable');
     if (lockViolations(head.paragraphs, applied.paragraphs, locks).length) {
       return { status: 'conflict', conflict: { reason: 'locked', detail: 'Applying this would change locked text.', baseText, headText: head.paragraphs.find((p) => p.id === prop.paragraphId)?.text ?? null, replacement } };
     }
