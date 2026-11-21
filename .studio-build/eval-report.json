@@ -1,5 +1,5 @@
 {
-  "generated": "2026-11-21T09:22:22.766Z",
+  "generated": "2026-11-21T09:23:14.280Z",
   "note": "Small synthetic fixture set; these numbers describe these fixtures only and are not a population accuracy claim. The held-out split was not used to tune any rule.",
   "fixtures": {
     "total": 30,

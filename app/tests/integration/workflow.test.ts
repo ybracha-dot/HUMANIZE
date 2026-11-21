@@ -8,15 +8,20 @@ import { makePdf } from '../../server/pdfgen.ts';
 describe('personal workflow: import -> idea -> thesis -> draft -> review -> decide -> reopen -> export', () => {
   const { db } = freshDb('wf');
   let u: Awaited<ReturnType<typeof newUser>>;
-  let asgId = ''; let courseId = ''; let docId = '';
+  let asgId = '';
+  let courseId = '';
+  let docId = '';
   const state: Record<string, any> = {};
 
-  beforeAll(async () => { u = await newUser(db); });
+  beforeAll(async () => {
+    u = await newUser(db);
+  });
 
   it('M1: seeds the sample course; brief items carry exact quotes, conflicts and what is missing', async () => {
     const seed = await u.api.post('demo/seed');
     expect(seed.status).toBe(200);
-    asgId = seed.data.assignmentId; courseId = seed.data.courseId;
+    asgId = seed.data.assignmentId;
+    courseId = seed.data.courseId;
     const a = await u.api.get(`assignments/${asgId}`);
     const brief = a.data.brief;
     const kinds = new Set(brief.items.map((i: any) => i.kind));
@@ -45,7 +50,12 @@ describe('personal workflow: import -> idea -> thesis -> draft -> review -> deci
     const form = new FormData();
     form.append('kind', 'reading');
     form.append('file', new File([Buffer.from([0, 1, 2, 3, 250, 251, 0, 0, 9, 9])], 'broken.bin', { type: 'application/octet-stream' }));
-    form.append('file', new File([new Uint8Array(scanned)], 'scan.pdf', { type: 'application/pdf' }));
+    form.append(
+      'file',
+      new File([new Uint8Array(scanned)], 'scan.pdf', {
+        type: 'application/pdf',
+      }),
+    );
     form.append('file', new File(['A short reading about policy.\n\nIt has two paragraphs.'], 'ok.txt', { type: 'text/plain' }));
     const r = await u.api.upload(`courses/${courseId}/sources`, form);
     const by = Object.fromEntries(r.data.results.map((x: any) => [x.file, x]));
@@ -55,7 +65,11 @@ describe('personal workflow: import -> idea -> thesis -> draft -> review -> deci
     expect(by['scan.pdf'].error).toMatch(/OCR|by hand/);
     expect(by['ok.txt'].status).toBe('ok');
     // manual passage entry rescues the scanned file
-    const add = await u.api.post(`sources/${by['scan.pdf'].sourceId}/passages`, { text: 'Typed from the scan: tutoring raised pass rates.', pageIndex: 1, pageLabel: 'iv' });
+    const add = await u.api.post(`sources/${by['scan.pdf'].sourceId}/passages`, {
+      text: 'Typed from the scan: tutoring raised pass rates.',
+      pageIndex: 1,
+      pageLabel: 'iv',
+    });
     expect(add.status).toBe(200);
     const d = await u.api.get(`sources/${by['scan.pdf'].sourceId}`);
     expect(d.data.version.status).toBe('ok');
@@ -63,15 +77,22 @@ describe('personal workflow: import -> idea -> thesis -> draft -> review -> deci
   });
 
   it('M2: note -> at most two questions, two thesis options with readings and a weakening fact; original note kept', async () => {
-    const r = await u.api.post(`assignments/${asgId}/idea`, { note: 'I think attendance helps, but motivated students might also show up more.' });
+    const r = await u.api.post(`assignments/${asgId}/idea`, {
+      note: 'I think attendance helps, but motivated students might also show up more.',
+    });
     expect(r.status).toBe(200);
     expect(r.data.originalNote).toContain('motivated students');
     expect(r.data.extraction.objection).toMatch(/motivated students/);
     expect(r.data.questions.length).toBeLessThanOrEqual(2);
     expect(r.data.options).toHaveLength(2);
-    for (const o of r.data.options) { expect(o.weakeningFact.length).toBeGreaterThan(10); expect(o.supportingPassageIds).toContain(state.evidencePassage); }
+    for (const o of r.data.options) {
+      expect(o.weakeningFact.length).toBeGreaterThan(10);
+      expect(o.supportingPassageIds).toContain(state.evidencePassage);
+    }
     expect(r.data.provider).toBe('fixture:rules/1');
-    const ch = await u.api.post(`assignments/${asgId}/idea/choose`, { optionId: 'opt_association' });
+    const ch = await u.api.post(`assignments/${asgId}/idea/choose`, {
+      optionId: 'opt_association',
+    });
     expect(ch.data.thesis).toMatch(/association/);
   });
 
@@ -86,12 +107,17 @@ describe('personal workflow: import -> idea -> thesis -> draft -> review -> deci
     expect(doc.data.revision.cause).toBe('draft');
     // lock the thesis paragraph and an exact span, then reload
     const first = doc.data.revision.paragraphs[0];
-    const lk = await u.api.post(`documents/${docId}/locks`, { paragraphId: first.id, kind: 'paragraph', thesis: true });
+    const lk = await u.api.post(`documents/${docId}/locks`, {
+      paragraphId: first.id,
+      kind: 'paragraph',
+      thesis: true,
+    });
     expect(lk.status).toBe(200);
     const re = await u.api.get(`documents/${docId}`);
     expect(re.data.locks).toHaveLength(1);
     expect(re.data.locks[0].thesis).toBe(true);
-    state.thesisId = first.id; state.thesisText = first.text;
+    state.thesisId = first.id;
+    state.thesisText = first.text;
     // revising a locked paragraph is refused
     const rv = await u.api.post(`documents/${docId}/paragraphs/${first.id}/revise`);
     expect(rv.status).toBe(409);
@@ -99,16 +125,35 @@ describe('personal workflow: import -> idea -> thesis -> draft -> review -> deci
 
   it('M3: the student writes the evidence paragraph; Quick review runs through the durable queue', async () => {
     const doc = await u.api.get(`documents/${docId}`);
-    const paras = doc.data.revision.paragraphs.map((p: any, i: number) => (i === 1 ? { id: p.id, text: 'Attendance is associated with higher exam scores.' } : { id: p.id, text: p.text }));
+    const paras = doc.data.revision.paragraphs.map((p: any, i: number) =>
+      i === 1
+        ? {
+            id: p.id,
+            text: 'Attendance is associated with higher exam scores.',
+          }
+        : { id: p.id, text: p.text },
+    );
     state.evParaId = paras[1].id;
-    const s = await u.api.post(`documents/${docId}/revisions`, { baseRevisionId: doc.data.revision.id, paragraphs: paras, label: 'My evidence paragraph' });
+    const s = await u.api.post(`documents/${docId}/revisions`, {
+      baseRevisionId: doc.data.revision.id,
+      paragraphs: paras,
+      label: 'My evidence paragraph',
+    });
     expect(s.status).toBe(200);
-    const est = await u.api.post(`documents/${docId}/runs/estimate`, { mode: 'quick' });
+    const est = await u.api.post(`documents/${docId}/runs/estimate`, {
+      mode: 'quick',
+    });
     expect(est.data.paid).toBe(false);
     expect(est.data.label).toMatch(/free/);
-    const run = await u.api.post(`documents/${docId}/runs`, { mode: 'quick', idempotencyKey: 'quick-run-1' });
+    const run = await u.api.post(`documents/${docId}/runs`, {
+      mode: 'quick',
+      idempotencyKey: 'quick-run-1',
+    });
     expect(run.status).toBe(202);
-    const dup = await u.api.post(`documents/${docId}/runs`, { mode: 'quick', idempotencyKey: 'quick-run-1' });
+    const dup = await u.api.post(`documents/${docId}/runs`, {
+      mode: 'quick',
+      idempotencyKey: 'quick-run-1',
+    });
     expect(dup.data.runId).toBe(run.data.runId);
     const fin = await waitRun(u.api, db, run.data.runId);
     expect(fin.status).toBe('done');
@@ -127,26 +172,42 @@ describe('personal workflow: import -> idea -> thesis -> draft -> review -> deci
     expect(sharpen.requiresDecision).toBe(true);
     expect(sharpen.meaningChange).toMatch(/causation/);
     expect(props.indexOf(limit)).toBeLessThan(props.indexOf(sharpen)); // missing requirement outranks argument polish
-    state.limit = limit.id; state.sharpen = sharpen.id; state.limitText = limit.replacement;
+    state.limit = limit.id;
+    state.sharpen = sharpen.id;
+    state.limitText = limit.replacement;
     // locked thesis paragraph untouched by any proposal
     expect(props.every((p: any) => p.paragraphId !== state.thesisId)).toBe(true);
   });
 
   it('M3: reject the causal rewrite; accept the limitation. One decision, one revision each', async () => {
-    const rej = await u.api.post(`proposals/${state.sharpen}/decision`, { action: 'reject', idempotencyKey: 'reject-1' });
+    const rej = await u.api.post(`proposals/${state.sharpen}/decision`, {
+      action: 'reject',
+      idempotencyKey: 'reject-1',
+    });
     expect(rej.data.status).toBe('rejected');
     const before = (await u.api.get(`documents/${docId}/history`)).data.revisions.length;
-    const acc = await u.api.post(`proposals/${state.limit}/decision`, { action: 'accept', idempotencyKey: 'accept-1' });
+    const acc = await u.api.post(`proposals/${state.limit}/decision`, {
+      action: 'accept',
+      idempotencyKey: 'accept-1',
+    });
     expect(acc.data.status).toBe('accepted');
-    const replay = await u.api.post(`proposals/${state.limit}/decision`, { action: 'accept', idempotencyKey: 'accept-1' });
+    const replay = await u.api.post(`proposals/${state.limit}/decision`, {
+      action: 'accept',
+      idempotencyKey: 'accept-1',
+    });
     expect(replay.data.replayed).toBe(true);
-    const other = await u.api.post(`proposals/${state.limit}/decision`, { action: 'accept', idempotencyKey: 'accept-2' });
+    const other = await u.api.post(`proposals/${state.limit}/decision`, {
+      action: 'accept',
+      idempotencyKey: 'accept-2',
+    });
     expect(other.data.replayed).toBe(true);
     const after = (await u.api.get(`documents/${docId}/history`)).data.revisions.length;
     expect(after).toBe(before + 1);
     const doc = await u.api.get(`documents/${docId}`);
     const ev = doc.data.revision.paragraphs.find((p: any) => p.id === state.evParaId).text;
-    expect(ev).toBe('Attendance is associated with higher exam scores. Because students chose whether to attend, this shows an association rather than an effect: motivated students might also show up more.');
+    expect(ev).toBe(
+      'Attendance is associated with higher exam scores. Because students chose whether to attend, this shows an association rather than an effect: motivated students might also show up more.',
+    );
     expect(doc.data.revision.paragraphs[0].text).toBe(state.thesisText); // lock held
   });
 
@@ -167,9 +228,13 @@ describe('personal workflow: import -> idea -> thesis -> draft -> review -> deci
     const prev = await u.api.get(`documents/${docId}/export-preview`);
     expect(prev.data.text).toBe(approved);
     expect(prev.data.hash).toBe(doc.data.revision.hash);
-    const txt = await u.api.post(`documents/${docId}/export`, { format: 'txt' });
+    const txt = await u.api.post(`documents/${docId}/export`, {
+      format: 'txt',
+    });
     expect(Buffer.from(txt.data).toString('utf8')).toBe(approved);
-    const dx = await u.api.post(`documents/${docId}/export`, { format: 'docx' });
+    const dx = await u.api.post(`documents/${docId}/export`, {
+      format: 'docx',
+    });
     const reread = await readDocxText(dx.data);
     expect(reread).toBe(approved);
     expect(sha256(reread)).toBe(sha256(approved));
@@ -177,7 +242,9 @@ describe('personal workflow: import -> idea -> thesis -> draft -> review -> deci
     // restore the revision before the accepted edit; the accepted one stays in history
     const h = (await u.api.get(`documents/${docId}/history`)).data;
     const target = h.revisions.find((r: any) => r.label === 'My evidence paragraph');
-    const rs = await u.api.post(`documents/${docId}/restore`, { revisionId: target.id });
+    const rs = await u.api.post(`documents/${docId}/restore`, {
+      revisionId: target.id,
+    });
     expect(rs.status).toBe(200);
     const h2 = (await u.api.get(`documents/${docId}/history`)).data;
     expect(h2.revisions.length).toBe(h.revisions.length + 1);
@@ -195,7 +262,13 @@ describe('personal workflow: import -> idea -> thesis -> draft -> review -> deci
   });
 
   it('replayed/simulated input can never become an authorship event', async () => {
-    const r = await u.api.post(`documents/${docId}/events`, { kind: 'typing_batch', inserted: 500, simulated: true, tool: 'practice playback', chars: 500 });
+    const r = await u.api.post(`documents/${docId}/events`, {
+      kind: 'typing_batch',
+      inserted: 500,
+      simulated: true,
+      tool: 'practice playback',
+      chars: 500,
+    });
     expect(r.data.recordedAs).toBe('automated_input');
     const rep = (await u.api.get(`documents/${docId}/report`)).data.lines.join('\n');
     expect(rep).toMatch(/NOT an authorship event/);

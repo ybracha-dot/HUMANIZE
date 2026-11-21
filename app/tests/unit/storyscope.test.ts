@@ -24,7 +24,8 @@ describe('StoryScope manifest covers the actual upstream taxonomy', () => {
     }
   });
   it('dimension counts match the upstream metadata and every linked check exists', () => {
-    for (const [dim, n] of Object.entries<number>(tax.taxonomy_metadata.dimension_coverage)) expect(manifest.features.filter((f) => f.dimension === dim).length).toBe(n);
+    for (const [dim, n] of Object.entries<number>(tax.taxonomy_metadata.dimension_coverage))
+      expect(manifest.features.filter((f) => f.dimension === dim).length).toBe(n);
     const checkIds = new Set(NARRATIVE_CHECKS.map((c) => c.id));
     for (const f of manifest.features) if (f.editorialUse.kind === 'check') expect(checkIds.has(f.editorialUse.checkId!)).toBe(true);
     for (const c of NARRATIVE_CHECKS.filter((c) => c.taxonomyIds.length)) for (const id of c.taxonomyIds) expect(ids).toContain(id);

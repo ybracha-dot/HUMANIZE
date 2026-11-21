@@ -3,7 +3,9 @@
 import { createRequire } from 'node:module';
 import type { DatabaseSync as DatabaseSyncType } from 'node:sqlite';
 // node:sqlite is loaded through require so bundlers (vitest/vite) treat it as a builtin
-const { DatabaseSync } = createRequire(import.meta.url)('node:sqlite') as { DatabaseSync: typeof DatabaseSyncType };
+const { DatabaseSync } = createRequire(import.meta.url)('node:sqlite') as {
+  DatabaseSync: typeof DatabaseSyncType;
+};
 import crypto from 'node:crypto';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -72,7 +74,10 @@ export function openDb(file?: string): DB {
 export function getDb(): DB {
   return (shared ??= openDb());
 }
-export function closeShared() { shared?.close(); shared = null; }
+export function closeShared() {
+  shared?.close();
+  shared = null;
+}
 
 /** Run `fn` inside BEGIN IMMEDIATE. Rolls back on throw. Nested calls join the outer transaction. */
 const depth = new WeakMap<DB, number>();
@@ -86,7 +91,11 @@ export function tx<T>(db: DB, fn: () => T): T {
     db.exec('COMMIT');
     return r;
   } catch (e) {
-    try { db.exec('ROLLBACK'); } catch { /* already rolled back */ }
+    try {
+      db.exec('ROLLBACK');
+    } catch {
+      /* already rolled back */
+    }
     throw e;
   } finally {
     depth.set(db, 0);
@@ -98,7 +107,13 @@ export const one = (db: DB, sql: string, ...p: any[]): Row | undefined => db.pre
 export const all = (db: DB, sql: string, ...p: any[]): Row[] => db.prepare(sql).all(...p) as Row[];
 export const run = (db: DB, sql: string, ...p: any[]) => db.prepare(sql).run(...p);
 export const j = (v: unknown) => JSON.stringify(v ?? null);
-export const unj = <T = any>(s: unknown, fallback: T): T => { try { return s ? (JSON.parse(String(s)) as T) : fallback; } catch { return fallback; } };
+export const unj = <T = any>(s: unknown, fallback: T): T => {
+  try {
+    return s ? (JSON.parse(String(s)) as T) : fallback;
+  } catch {
+    return fallback;
+  }
+};
 
 export function nextSeq(db: DB, ws: string, name: string): number {
   run(db, 'INSERT INTO seq(workspace_id,name,n) VALUES(?,?,1) ON CONFLICT(workspace_id,name) DO UPDATE SET n=n+1', ws, name);

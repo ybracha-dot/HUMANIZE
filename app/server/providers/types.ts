@@ -11,7 +11,10 @@ export interface CallResult<T = any> {
   paid: boolean;
   requestRef?: string;
 }
-export interface CallControl { signal?: AbortSignal; maxOutputTokens?: number }
+export interface CallControl {
+  signal?: AbortSignal;
+  maxOutputTokens?: number;
+}
 
 export interface Provider {
   id: string;
@@ -24,6 +27,27 @@ export interface Provider {
 }
 
 /** Error whose outcome at the provider is unknown (timeout after send). The caller marks spend 'uncertain'. */
-export class UncertainError extends Error { constructor(message: string, public requestRef?: string) { super(message); } }
-export class RetryableError extends Error { constructor(message: string, public retryAfterMs?: number) { super(message); } }
-export class ProviderError extends Error { constructor(message: string, public status?: number) { super(message); } }
+export class UncertainError extends Error {
+  constructor(
+    message: string,
+    public requestRef?: string,
+  ) {
+    super(message);
+  }
+}
+export class RetryableError extends Error {
+  constructor(
+    message: string,
+    public retryAfterMs?: number,
+  ) {
+    super(message);
+  }
+}
+export class ProviderError extends Error {
+  constructor(
+    message: string,
+    public status?: number,
+  ) {
+    super(message);
+  }
+}

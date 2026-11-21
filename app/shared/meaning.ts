@@ -9,9 +9,20 @@ import { pctPointDiff, round } from './text.ts';
 import { meaningfulChars } from './unicode.ts';
 
 export type FindingCategory =
-  | 'number_removed' | 'number_introduced' | 'unit_changed' | 'quote_changed' | 'citation_changed'
-  | 'negation_changed' | 'qualification_dropped' | 'hedge_dropped' | 'attribution_dropped'
-  | 'condition_dropped' | 'period_changed' | 'causal_introduced' | 'entity_removed' | 'character_lost';
+  | 'number_removed'
+  | 'number_introduced'
+  | 'unit_changed'
+  | 'quote_changed'
+  | 'citation_changed'
+  | 'negation_changed'
+  | 'qualification_dropped'
+  | 'hedge_dropped'
+  | 'attribution_dropped'
+  | 'condition_dropped'
+  | 'period_changed'
+  | 'causal_introduced'
+  | 'entity_removed'
+  | 'character_lost';
 export type Severity = 'material' | 'minor';
 
 export interface Finding {
@@ -23,15 +34,30 @@ export interface Finding {
 }
 
 export interface NumFact {
-  raw: string; value: number; unit: 'percent' | 'pp' | 'usd' | 'eur' | 'gbp' | 'count' | 'year'; approx: boolean; index: number;
+  raw: string;
+  value: number;
+  unit: 'percent' | 'pp' | 'usd' | 'eur' | 'gbp' | 'count' | 'year';
+  approx: boolean;
+  index: number;
 }
 
-const SCALE: Record<string, number> = { thousand: 1e3, k: 1e3, million: 1e6, m: 1e6, mn: 1e6, billion: 1e9, bn: 1e9, b: 1e9, trillion: 1e12 };
+const SCALE: Record<string, number> = {
+  thousand: 1e3,
+  k: 1e3,
+  million: 1e6,
+  m: 1e6,
+  mn: 1e6,
+  billion: 1e9,
+  bn: 1e9,
+  b: 1e9,
+  trillion: 1e12,
+};
 const APPROX_WORDS = /\b(about|approximately|roughly|around|nearly|almost|circa|some|an estimated|estimated at|or so)\b|~/i;
 
 export function extractNumbers(text: string): NumFact[] {
   const out: NumFact[] = [];
-  const re = /(?<![\w.])(?<cur>[$€£])?\s?(?<num>\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?)(?:\s?(?<scale>thousand|million|billion|trillion|bn|mn|k|m|b)\b)?(?<unit>\s?%|\s?percent(?:age)?\s+points?|\s?percentage\s+points?|\s?pp\b|\s?points?\b|\s?percent\b)?/gi;
+  const re =
+    /(?<![\w.])(?<cur>[$€£])?\s?(?<num>\d{1,3}(?:,\d{3})+(?:\.\d+)?|\d+(?:\.\d+)?)(?:\s?(?<scale>thousand|million|billion|trillion|bn|mn|k|m|b)\b)?(?<unit>\s?%|\s?percent(?:age)?\s+points?|\s?percentage\s+points?|\s?pp\b|\s?points?\b|\s?percent\b)?/gi;
   let m: RegExpExecArray | null;
   while ((m = re.exec(text))) {
     const g = m.groups!;
@@ -48,21 +74,40 @@ export function extractNumbers(text: string): NumFact[] {
     else if (u) unit = 'pp';
     else if (/^(19|20)\d{2}$/.test(g.num) && !scaleWord) unit = 'year';
     const before = text.slice(Math.max(0, m.index - 24), m.index);
-    out.push({ raw: m[0].trim(), value, unit, approx: APPROX_WORDS.test(before), index: m.index });
+    out.push({
+      raw: m[0].trim(),
+      value,
+      unit,
+      approx: APPROX_WORDS.test(before),
+      index: m.index,
+    });
   }
   return out;
 }
 
-export interface Quote { text: string; start: number; end: number }
+export interface Quote {
+  text: string;
+  start: number;
+  end: number;
+}
 export function extractQuotes(text: string): Quote[] {
   const out: Quote[] = [];
   const re = /"([^"\n]{3,}?)"|“([^”\n]{3,}?)”/g;
   let m: RegExpExecArray | null;
-  while ((m = re.exec(text))) out.push({ text: (m[1] ?? m[2]).trim(), start: m.index, end: m.index + m[0].length });
+  while ((m = re.exec(text)))
+    out.push({
+      text: (m[1] ?? m[2]).trim(),
+      start: m.index,
+      end: m.index + m[0].length,
+    });
   return out;
 }
 
-export interface Citation { text: string; start: number; end: number }
+export interface Citation {
+  text: string;
+  start: number;
+  end: number;
+}
 export function extractCitations(text: string): Citation[] {
   const out: Citation[] = [];
   const res = [
@@ -82,26 +127,60 @@ export function extractCitations(text: string): Citation[] {
   return out.sort((a, b) => a.start - b.start);
 }
 
-const NEG = /\b(not|no|never|none|neither|nor|cannot|without|fails? to|failed to|did not|does not|do not|isn't|aren't|wasn't|weren't|didn't|doesn't|don't|can't|won't|hasn't|haven't)\b/gi;
+const NEG =
+  /\b(not|no|never|none|neither|nor|cannot|without|fails? to|failed to|did not|does not|do not|isn't|aren't|wasn't|weren't|didn't|doesn't|don't|can't|won't|hasn't|haven't)\b/gi;
 export function negations(text: string): string[] {
   return text.match(NEG)?.map((s) => s.toLowerCase()) ?? [];
 }
 
 export const QUALIFICATIONS = [
-  'statistically significant', 'on average', 'in some cases', 'in part', 'partly', 'preliminary', 'self-reported',
-  'observational', 'pilot', 'sample', 'at least', 'at most', 'only', 'mostly', 'largely', 'among',
+  'statistically significant',
+  'on average',
+  'in some cases',
+  'in part',
+  'partly',
+  'preliminary',
+  'self-reported',
+  'observational',
+  'pilot',
+  'sample',
+  'at least',
+  'at most',
+  'only',
+  'mostly',
+  'largely',
+  'among',
 ];
 const HEDGE_CLASSES: { id: string; label: string; re: RegExp }[] = [
-  { id: 'approx', label: 'approximation (about, roughly...)', re: /\b(about|approximately|roughly|around|nearly|almost|circa|or so)\b|~/i },
-  { id: 'epistemic', label: 'uncertainty (may, suggests, likely...)', re: /\b(may|might|could|possibly|perhaps|likely|probably|appears?|seems?|suggests?|tends?|tend to|unclear|uncertain)\b/i },
-  { id: 'expectation', label: 'expectation or projection (expects, projects...)', re: /\b(expects?|expected|projects?|projected|forecasts?|anticipates?|anticipated|estimates?|estimated|plans? to|is set to|will|would|predict(?:s|ed)?)\b/i },
+  {
+    id: 'approx',
+    label: 'approximation (about, roughly...)',
+    re: /\b(about|approximately|roughly|around|nearly|almost|circa|or so)\b|~/i,
+  },
+  {
+    id: 'epistemic',
+    label: 'uncertainty (may, suggests, likely...)',
+    re: /\b(may|might|could|possibly|perhaps|likely|probably|appears?|seems?|suggests?|tends?|tend to|unclear|uncertain)\b/i,
+  },
+  {
+    id: 'expectation',
+    label: 'expectation or projection (expects, projects...)',
+    re: /\b(expects?|expected|projects?|projected|forecasts?|anticipates?|anticipated|estimates?|estimated|plans? to|is set to|will|would|predict(?:s|ed)?)\b/i,
+  },
 ];
 
-const ATTR_VERBS = 'expects|projects|reports|claims|argues|states|says|found|finds|estimates|forecasts|announced|notes|believes|predicts|suggests|contends|asserts|concludes|shows|showed';
-export interface Attribution { subject: string; verb: string }
+const ATTR_VERBS =
+  'expects|projects|reports|claims|argues|states|says|found|finds|estimates|forecasts|announced|notes|believes|predicts|suggests|contends|asserts|concludes|shows|showed';
+export interface Attribution {
+  subject: string;
+  verb: string;
+}
 export function attributions(text: string): Attribution[] {
   const out: Attribution[] = [];
-  const re1 = new RegExp(`(?:^|[.!?]\\s+|,\\s+)((?:The|A|An)?\\s?[A-Z][\\p{L}'’\\-]*(?:\\s[A-Z][\\p{L}'’\\-]*){0,3}|The\\s[\\p{L}\\-]+(?:\\s[\\p{L}\\-]+)?)\\s+(?:also\\s)?(${ATTR_VERBS})\\b`, 'gu');
+  const re1 = new RegExp(
+    `(?:^|[.!?]\\s+|,\\s+)((?:The|A|An)?\\s?[A-Z][\\p{L}'’\\-]*(?:\\s[A-Z][\\p{L}'’\\-]*){0,3}|The\\s[\\p{L}\\-]+(?:\\s[\\p{L}\\-]+)?)\\s+(?:also\\s)?(${ATTR_VERBS})\\b`,
+    'gu',
+  );
   let m: RegExpExecArray | null;
   while ((m = re1.exec(text))) {
     const subj = m[1].trim();
@@ -131,9 +210,12 @@ export function periodOf(text: string): string | null {
 }
 
 // --- causal language ---------------------------------------------------------------------------
-const STRONG_CAUSAL = /\b(causes?|caused|causing|leads? to|led to|leading to|results? in|resulted in|because of|due to|owing to|thanks to|as a result of|effect of|effects of|impact of|impact on|drives?|drove|driven by|produces?|produced|responsible for)\b/i;
-const AGENTIVE = /\b(rais(?:e|es|ed|ing)|improv(?:e|es|ed|ing)|boost(?:s|ed|ing)?|increas(?:e|es|ed|ing)|reduc(?:e|es|ed|ing)|lower(?:s|ed|ing)?|enhanc(?:e|es|ed|ing)|rais(?:e|ed))\s+(?!by\b|from\b|to\b|in\b|after\b|when\b|during\b|over\b|between\b|across\b|for\b|above\b|below\b|slightly\b|sharply\b|modestly\b|significantly\b|steadily\b|again\b|further\b|\d)([a-z][\p{L}'-]*)/iu;
-const ASSOC = /\b(associated with|correlat\w+|linked to|related to|tend(?:s|ed)? to|coincid\w+|accompan\w+|higher (?:among|for|in)|co-occur\w*|goes? along with)\b/i;
+const STRONG_CAUSAL =
+  /\b(causes?|caused|causing|leads? to|led to|leading to|results? in|resulted in|because of|due to|owing to|thanks to|as a result of|effect of|effects of|impact of|impact on|drives?|drove|driven by|produces?|produced|responsible for)\b/i;
+const AGENTIVE =
+  /\b(rais(?:e|es|ed|ing)|improv(?:e|es|ed|ing)|boost(?:s|ed|ing)?|increas(?:e|es|ed|ing)|reduc(?:e|es|ed|ing)|lower(?:s|ed|ing)?|enhanc(?:e|es|ed|ing)|rais(?:e|ed))\s+(?!by\b|from\b|to\b|in\b|after\b|when\b|during\b|over\b|between\b|across\b|for\b|above\b|below\b|slightly\b|sharply\b|modestly\b|significantly\b|steadily\b|again\b|further\b|\d)([a-z][\p{L}'-]*)/iu;
+const ASSOC =
+  /\b(associated with|correlat\w+|linked to|related to|tend(?:s|ed)? to|coincid\w+|accompan\w+|higher (?:among|for|in)|co-occur\w*|goes? along with)\b/i;
 export function causalMarker(text: string): string | null {
   const s = text.match(STRONG_CAUSAL);
   if (s) return s[0];
@@ -190,11 +272,17 @@ export function compareMeaning(original: string, candidate: string): MeaningRepo
       if (Math.abs(c.value - Math.abs(points)) < 0.051 || Math.abs(c.value - Math.abs(relativePct)) < 0.051) {
         explained = true;
         add({
-          category: 'unit_changed', severity: 'material', original: `${a.raw} to ${b.raw}`, candidate: c.raw,
+          category: 'unit_changed',
+          severity: 'material',
+          original: `${a.raw} to ${b.raw}`,
+          candidate: c.raw,
           message: `"${c.raw}" is ambiguous. The original change is ${round(Math.abs(points), 2)} percentage points (${a.raw} to ${b.raw}) and about ${round(Math.abs(relativePct), 1)}% in relative terms. Do not assume which was intended.`,
         });
         unmatchedC.splice(unmatchedC.indexOf(c), 1);
-        for (const mm of [a, b]) { const i = missing.indexOf(missing.find((x) => x.raw === mm.raw)!); if (i >= 0) missing.splice(i, 1); }
+        for (const mm of [a, b]) {
+          const i = missing.indexOf(missing.find((x) => x.raw === mm.raw)!);
+          if (i >= 0) missing.splice(i, 1);
+        }
         break;
       }
     }
@@ -203,16 +291,34 @@ export function compareMeaning(original: string, candidate: string): MeaningRepo
     // same value, different unit?
     const near = unmatchedC.find((c) => Math.abs(c.value - o.value) < 1e-9);
     if (near) {
-      add({ category: 'unit_changed', severity: 'material', original: o.raw, candidate: near.raw, message: `Unit or scale changed: "${o.raw}" became "${near.raw}".` });
+      add({
+        category: 'unit_changed',
+        severity: 'material',
+        original: o.raw,
+        candidate: near.raw,
+        message: `Unit or scale changed: "${o.raw}" became "${near.raw}".`,
+      });
       unmatchedC.splice(unmatchedC.indexOf(near), 1);
     } else {
-      add({ category: 'number_removed', severity: 'material', original: o.raw, candidate: '', message: `The figure "${o.raw}" no longer appears.` });
+      add({
+        category: 'number_removed',
+        severity: 'material',
+        original: o.raw,
+        candidate: '',
+        message: `The figure "${o.raw}" no longer appears.`,
+      });
     }
   }
   if (!explained) {
     for (const c of unmatchedC) {
       if (c.unit === 'year' && !on.length) continue;
-      add({ category: 'number_introduced', severity: 'material', original: '', candidate: c.raw, message: `The figure "${c.raw}" is new and has no source in the original sentence.` });
+      add({
+        category: 'number_introduced',
+        severity: 'material',
+        original: '',
+        candidate: c.raw,
+        message: `The figure "${c.raw}" is new and has no source in the original sentence.`,
+      });
     }
   }
 
@@ -220,27 +326,58 @@ export function compareMeaning(original: string, candidate: string): MeaningRepo
   const foldQ = (s: string) => s.replace(/[‘’]/g, "'").replace(/[“”]/g, '"');
   const cq = foldQ(candidate);
   for (const q of extractQuotes(original)) {
-    if (!cq.includes(foldQ(q.text))) add({ category: 'quote_changed', severity: 'material', original: q.text, candidate: '', message: `Quoted text "${q.text}" was altered or removed. Quotations must stay verbatim.` });
+    if (!cq.includes(foldQ(q.text)))
+      add({
+        category: 'quote_changed',
+        severity: 'material',
+        original: q.text,
+        candidate: '',
+        message: `Quoted text "${q.text}" was altered or removed. Quotations must stay verbatim.`,
+      });
   }
   // Citations ---------------------------------------------------------------------------------
   const ccit = extractCitations(candidate).map((c) => c.text.replace(/\s+/g, ' '));
   for (const c of extractCitations(original)) {
-    if (!ccit.includes(c.text.replace(/\s+/g, ' '))) add({ category: 'citation_changed', severity: 'material', original: c.text, candidate: '', message: `Citation ${c.text} was changed or removed.` });
+    if (!ccit.includes(c.text.replace(/\s+/g, ' ')))
+      add({
+        category: 'citation_changed',
+        severity: 'material',
+        original: c.text,
+        candidate: '',
+        message: `Citation ${c.text} was changed or removed.`,
+      });
   }
   for (const c of ccit) {
-    if (!extractCitations(original).some((o) => o.text.replace(/\s+/g, ' ') === c)) add({ category: 'citation_changed', severity: 'material', original: '', candidate: c, message: `Citation ${c} was added by the rewrite and must be checked against the source.` });
+    if (!extractCitations(original).some((o) => o.text.replace(/\s+/g, ' ') === c))
+      add({
+        category: 'citation_changed',
+        severity: 'material',
+        original: '',
+        candidate: c,
+        message: `Citation ${c} was added by the rewrite and must be checked against the source.`,
+      });
   }
 
   // Negation and qualification -----------------------------------------------------------------
-  const on0 = negations(original); const cn0 = negations(candidate);
-  if ((on0.length > 0) !== (cn0.length > 0)) {
-    add({ category: 'negation_changed', severity: 'material', original: on0.join(', '), candidate: cn0.join(', '), message: on0.length ? 'A negation in the original is missing from the rewrite.' : 'The rewrite introduces a negation.' });
+  const on0 = negations(original);
+  const cn0 = negations(candidate);
+  if (on0.length > 0 !== cn0.length > 0) {
+    add({
+      category: 'negation_changed',
+      severity: 'material',
+      original: on0.join(', '),
+      candidate: cn0.join(', '),
+      message: on0.length ? 'A negation in the original is missing from the rewrite.' : 'The rewrite introduces a negation.',
+    });
   }
   for (const q of QUALIFICATIONS) {
     if (wordPresent(original, q) && !wordPresent(candidate, q)) {
       const strongInference = q === 'statistically significant' && on0.length > 0;
       add({
-        category: 'qualification_dropped', severity: strongInference || q === 'statistically significant' || q === 'at least' || q === 'at most' ? 'material' : 'minor', original: q, candidate: '',
+        category: 'qualification_dropped',
+        severity: strongInference || q === 'statistically significant' || q === 'at least' || q === 'at most' ? 'material' : 'minor',
+        original: q,
+        candidate: '',
         message: strongInference
           ? `The qualification "${q}" was dropped. "Did not show a ${q} effect" is weaker than "no effect"; the rewrite changes the inference.`
           : `The qualification "${q}" no longer appears.`,
@@ -251,7 +388,13 @@ export function compareMeaning(original: string, candidate: string): MeaningRepo
   // Hedges ------------------------------------------------------------------------------------
   for (const h of HEDGE_CLASSES) {
     if (h.re.test(original) && !h.re.test(candidate)) {
-      add({ category: 'hedge_dropped', severity: 'material', original: original.match(h.re)![0], candidate: '', message: `Lost ${h.label}: "${original.match(h.re)![0]}" is not carried into the rewrite.` });
+      add({
+        category: 'hedge_dropped',
+        severity: 'material',
+        original: original.match(h.re)![0],
+        candidate: '',
+        message: `Lost ${h.label}: "${original.match(h.re)![0]}" is not carried into the rewrite.`,
+      });
     }
   }
 
@@ -259,44 +402,110 @@ export function compareMeaning(original: string, candidate: string): MeaningRepo
   for (const a of attributions(original)) {
     const head = a.subject.replace(/^(the|a|an)\s+/i, '');
     const ok = wordPresent(candidate, head) || /\baccording to\b/i.test(candidate);
-    if (!ok) add({ category: 'attribution_dropped', severity: 'material', original: `${a.subject} ${a.verb}`, candidate: '', message: `The attribution to "${a.subject}" is gone, so the claim now reads as established fact.` });
+    if (!ok)
+      add({
+        category: 'attribution_dropped',
+        severity: 'material',
+        original: `${a.subject} ${a.verb}`,
+        candidate: '',
+        message: `The attribution to "${a.subject}" is gone, so the claim now reads as established fact.`,
+      });
   }
 
   // Conditions and period ---------------------------------------------------------------------
   if (conditions(original).length && !conditions(candidate).length) {
-    add({ category: 'condition_dropped', severity: 'material', original: conditions(original).join(', '), candidate: '', message: 'A time or condition clause ("' + conditions(original)[0] + '...") was dropped.' });
+    add({
+      category: 'condition_dropped',
+      severity: 'material',
+      original: conditions(original).join(', '),
+      candidate: '',
+      message: 'A time or condition clause ("' + conditions(original)[0] + '...") was dropped.',
+    });
   }
-  const po = periodOf(original); const pc = periodOf(candidate);
-  if (po && po !== pc) add({ category: 'period_changed', severity: 'material', original: po, candidate: pc ?? '', message: `The reporting period (${po}) was ${pc ? 'changed to ' + pc : 'dropped'}.` });
+  const po = periodOf(original);
+  const pc = periodOf(candidate);
+  if (po && po !== pc)
+    add({
+      category: 'period_changed',
+      severity: 'material',
+      original: po,
+      candidate: pc ?? '',
+      message: `The reporting period (${po}) was ${pc ? 'changed to ' + pc : 'dropped'}.`,
+    });
 
   // Causal language ---------------------------------------------------------------------------
-  const co = causalMarker(original); const cc = causalMarker(candidate);
-  if (!co && cc) add({ category: 'causal_introduced', severity: 'material', original: '', candidate: cc, message: `The rewrite asserts causation ("${cc}") where the original did not.` });
+  const co = causalMarker(original);
+  const cc = causalMarker(candidate);
+  if (!co && cc)
+    add({
+      category: 'causal_introduced',
+      severity: 'material',
+      original: '',
+      candidate: cc,
+      message: `The rewrite asserts causation ("${cc}") where the original did not.`,
+    });
 
   // Named entities (capitalised tokens not at sentence start) -----------------------------------
   const ents = (t: string) => new Set([...t.matchAll(/(?<![.!?]\s)(?<!^)\b([A-Z][\p{L}'’\-]{2,})\b/gu)].map((m) => m[1]));
   const ce = ents(candidate);
-  for (const e of ents(original)) if (!ce.has(e) && !candidate.includes(e)) add({ category: 'entity_removed', severity: 'minor', original: e, candidate: '', message: `The name "${e}" no longer appears.` });
+  for (const e of ents(original))
+    if (!ce.has(e) && !candidate.includes(e))
+      add({
+        category: 'entity_removed',
+        severity: 'minor',
+        original: e,
+        candidate: '',
+        message: `The name "${e}" no longer appears.`,
+      });
 
   // Meaningful characters ---------------------------------------------------------------------
-  const mo = meaningfulChars(original); const mc = meaningfulChars(candidate);
+  const mo = meaningfulChars(original);
+  const mc = meaningfulChars(candidate);
   for (const [ch, n] of mo) {
     if ((mc.get(ch) ?? 0) < n && !/[‘’“”—–…]/.test(ch)) {
-      add({ category: 'character_lost', severity: 'material', original: ch, candidate: '', message: `The character "${ch}" (U+${ch.codePointAt(0)!.toString(16).toUpperCase().padStart(4, '0')}) was lost. Accents, other scripts and emoji must survive a rewrite.` });
+      add({
+        category: 'character_lost',
+        severity: 'material',
+        original: ch,
+        candidate: '',
+        message: `The character "${ch}" (U+${ch.codePointAt(0)!.toString(16).toUpperCase().padStart(4, '0')}) was lost. Accents, other scripts and emoji must survive a rewrite.`,
+      });
     }
   }
 
   const material = findings.filter((f) => f.severity === 'material');
   const failed = findings.some((f) => f.category === 'quote_changed');
-  return { findings, material, outcome: failed ? 'failed' : material.length ? 'decision_required' : 'acceptable' };
+  return {
+    findings,
+    material,
+    outcome: failed ? 'failed' : material.length ? 'decision_required' : 'acceptable',
+  };
 }
 
 /** Spans that drafting/revision must not rewrite on their own: quotes, citations and figures. */
-export interface ProtectedSpan { start: number; end: number; kind: 'quote' | 'citation' | 'number'; text: string }
+export interface ProtectedSpan {
+  start: number;
+  end: number;
+  kind: 'quote' | 'citation' | 'number';
+  text: string;
+}
 export function protectedSpans(text: string): ProtectedSpan[] {
   const spans: ProtectedSpan[] = [];
-  for (const q of extractQuotes(text)) spans.push({ start: q.start, end: q.end, kind: 'quote', text: text.slice(q.start, q.end) });
+  for (const q of extractQuotes(text))
+    spans.push({
+      start: q.start,
+      end: q.end,
+      kind: 'quote',
+      text: text.slice(q.start, q.end),
+    });
   for (const c of extractCitations(text)) spans.push({ start: c.start, end: c.end, kind: 'citation', text: c.text });
-  for (const n of extractNumbers(text)) if (n.unit !== 'year') spans.push({ start: n.index, end: n.index + n.raw.length, kind: 'number', text: n.raw });
+  for (const n of extractNumbers(text))
+    if (n.unit !== 'year')
+      spans.push({
+        start: n.index,
+        end: n.index + n.raw.length,
+        kind: 'number',
+        text: n.raw,
+      });
   return spans.sort((a, b) => a.start - b.start);
 }

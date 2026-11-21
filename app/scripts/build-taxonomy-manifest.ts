@@ -33,18 +33,35 @@ for (const [dimKey, dim] of Object.entries<any>(tax.feature_taxonomy)) {
         aspect: aspectKey,
         name: f.name,
         type: f.type,
-        measuredIn: 'long-form fiction: ~5,000-word stories, human anthology stories vs five LLMs (upstream README). Not validated for academic arguments, memos or other languages.',
+        measuredIn:
+          'long-form fiction: ~5,000-word stories, human anthology stories vs five LLMs (upstream README). Not validated for academic arguments, memos or other languages.',
         directionReported: 'unknown',
-        directionNote: 'The paper was not readable in this build environment (arxiv.org not reachable). Upstream README reports only corpus-level results, so no per-feature direction is claimed.',
+        directionNote:
+          'The paper was not readable in this build environment (arxiv.org not reachable). Upstream README reports only corpus-level results, so no per-feature direction is claimed.',
         editorialUse: check ? { kind: 'check', checkId: check } : { kind: 'omitted', reason: OMIT[dimKey] },
       });
     }
   }
 }
 const manifest = {
-  generatedFrom: { repo: 'https://github.com/jenna-russell/storyscope', commit: 'b82d93534ab25dbf20dfe902c21e77d0b0602ca1', license: 'MIT', file: 'data/taxonomy.json', totalFeatures: tax.taxonomy_metadata.total_features },
-  readme: { stories: 61608, prompts: 10272, features: 304, humanVsAiMacroF1: 0.932, sixWayMacroF1: 0.684, note: 'Numbers are the task results reported by the upstream README for its own corpus and classifier; they are not a property of any single text.' },
+  generatedFrom: {
+    repo: 'https://github.com/jenna-russell/storyscope',
+    commit: 'b82d93534ab25dbf20dfe902c21e77d0b0602ca1',
+    license: 'MIT',
+    file: 'data/taxonomy.json',
+    totalFeatures: tax.taxonomy_metadata.total_features,
+  },
+  readme: {
+    stories: 61608,
+    prompts: 10272,
+    features: 304,
+    humanVsAiMacroF1: 0.932,
+    sixWayMacroF1: 0.684,
+    note: 'Numbers are the task results reported by the upstream README for its own corpus and classifier; they are not a property of any single text.',
+  },
   features: entries,
 };
 fs.writeFileSync(path.resolve('shared/storyscope-manifest.json'), JSON.stringify(manifest, null, 1) + '\n');
-console.log(`manifest: ${entries.length} features, ${entries.filter((e) => e.editorialUse.kind === 'check').length} linked to checks, ${entries.filter((e) => e.editorialUse.kind === 'omitted').length} omitted with a reason`);
+console.log(
+  `manifest: ${entries.length} features, ${entries.filter((e) => e.editorialUse.kind === 'check').length} linked to checks, ${entries.filter((e) => e.editorialUse.kind === 'omitted').length} omitted with a reason`,
+);

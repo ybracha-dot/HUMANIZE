@@ -4,9 +4,16 @@ import { extractNumbers, extractCitations, causalMarker, isAssociational, negati
 import { findQuote, splitSentences } from './text.ts';
 
 // ---------------------------------------------------------------------------------------------
-export interface Claim { id: string; text: string; start: number; end: number; citations: string[] }
+export interface Claim {
+  id: string;
+  text: string;
+  start: number;
+  end: number;
+  citations: string[];
+}
 
-const VERBISH = /\b(is|are|was|were|has|have|had|will|would|can|could|should|may|might|rose|fell|grew|shows?|showed|found|says?|said|argues?|argued|caused?|raises?|raised|improv\w+|increas\w+|decreas\w+|reduc\w+|led|leads?|means?|meant|makes?|made|did|does|do)\b|\w+(?:ed|es)\b/i;
+const VERBISH =
+  /\b(is|are|was|were|has|have|had|will|would|can|could|should|may|might|rose|fell|grew|shows?|showed|found|says?|said|argues?|argued|caused?|raises?|raised|improv\w+|increas\w+|decreas\w+|reduc\w+|led|leads?|means?|meant|makes?|made|did|does|do)\b|\w+(?:ed|es)\b/i;
 
 /** Split a paragraph into checkable claims. Compound sentences are split at ; , and/but/while/whereas and "and" between clauses. */
 export function splitClaims(paragraph: string, idPrefix = 'c'): Claim[] {
@@ -33,21 +40,41 @@ export function splitClaims(paragraph: string, idPrefix = 'c'): Claim[] {
     }
     const bounds = [0, ...cuts, s.text.length];
     for (let i = 0; i < bounds.length - 1; i++) {
-      const rawStart = bounds[i]; const rawEnd = bounds[i + 1];
+      const rawStart = bounds[i];
+      const rawEnd = bounds[i + 1];
       let t = s.text.slice(rawStart, rawEnd);
       const lead = t.length - t.trimStart().length;
-      t = t.trim().replace(/[;,]+$/, '').trim();
+      t = t
+        .trim()
+        .replace(/[;,]+$/, '')
+        .trim();
       if (!t) continue;
-      claims.push({ id: `${idPrefix}${++n}`, text: t, start: s.start + rawStart + lead, end: s.start + rawStart + lead + t.length, citations: extractCitations(t).map((c) => c.text) });
+      claims.push({
+        id: `${idPrefix}${++n}`,
+        text: t,
+        start: s.start + rawStart + lead,
+        end: s.start + rawStart + lead + t.length,
+        citations: extractCitations(t).map((c) => c.text),
+      });
     }
   }
   return claims;
 }
 
 // ---------------------------------------------------------------------------------------------
-export interface IndexedPassage { id: string; text: string; sourceVersionId?: string; unreadable?: boolean; stale?: boolean }
+export interface IndexedPassage {
+  id: string;
+  text: string;
+  sourceVersionId?: string;
+  unreadable?: boolean;
+  stale?: boolean;
+}
 
-const STOP = new Set(('a an the and or but of in on at to for from by with as is are was were be been being it its this that these those which who whom than then there their they them he she his her we our you your i me my not no do does did has have had will would can could should may might also into over under about after before during between among both each other such so very more most some any all one two three').split(' '));
+const STOP = new Set(
+  'a an the and or but of in on at to for from by with as is are was were be been being it its this that these those which who whom than then there their they them he she his her we our you your i me my not no do does did has have had will would can could should may might also into over under about after before during between among both each other such so very more most some any all one two three'.split(
+    ' ',
+  ),
+);
 export function tokenize(s: string): string[] {
   return (s.toLowerCase().match(/[\p{L}\p{N}][\p{L}\p{N}'’]*/gu) ?? []).map(stem).filter((t) => t.length > 1 && !STOP.has(t));
 }
@@ -55,14 +82,22 @@ function stem(w: string): string {
   w = w.replace(/['’]s$/, '');
   if (/^\d/.test(w)) return w;
   for (const suf of ['ations', 'ation', 'ings', 'ing', 'edly', 'ed', 'ies', 's']) {
-    if (w.length > suf.length + 3 && w.endsWith(suf)) { w = suf === 'ies' ? w.slice(0, -3) + 'y' : w.slice(0, -suf.length); break; }
+    if (w.length > suf.length + 3 && w.endsWith(suf)) {
+      w = suf === 'ies' ? w.slice(0, -3) + 'y' : w.slice(0, -suf.length);
+      break;
+    }
   }
   if (w.length > 4 && w.endsWith('e')) w = w.slice(0, -1);
   return w.length > 6 ? w.slice(0, 6) : w; // prefix stem: attendance/attendees -> attend
 }
 
 export class PassageIndex {
-  private docs: { p: IndexedPassage; tf: Map<string, number>; len: number; tokens: string[] }[] = [];
+  private docs: {
+    p: IndexedPassage;
+    tf: Map<string, number>;
+    len: number;
+    tokens: string[];
+  }[] = [];
   private df = new Map<string, number>();
   private avgLen = 1;
   constructor(passages: IndexedPassage[]) {
@@ -91,9 +126,16 @@ export class PassageIndex {
       const joined = d.tokens.join(' ');
       for (const b of bigrams) if (joined.includes(b)) score += 1.5;
       const covered = [...qset].filter((t) => d.tf.has(t)).length;
-      return { passage: d.p, score, coverage: qset.size ? covered / qset.size : 0 };
+      return {
+        passage: d.p,
+        score,
+        coverage: qset.size ? covered / qset.size : 0,
+      };
     });
-    return out.filter((r) => r.score > 0).sort((a, b) => b.score - a.score).slice(0, k);
+    return out
+      .filter((r) => r.score > 0)
+      .sort((a, b) => b.score - a.score)
+      .slice(0, k);
   }
 }
 
@@ -112,46 +154,88 @@ export interface ClaimVerdict {
 }
 
 const OPPOSITES: [RegExp, RegExp][] = [
-  [/\b(higher|more|greater|increas\w*|rose|rise[sn]?|up|gain\w*|grew|growth)\b/i, /\b(lower|less|fewer|smaller|decreas\w*|fell|fall[sn]?|down|declin\w*|drop\w*)\b/i],
+  [
+    /\b(higher|more|greater|increas\w*|rose|rise[sn]?|up|gain\w*|grew|growth)\b/i,
+    /\b(lower|less|fewer|smaller|decreas\w*|fell|fall[sn]?|down|declin\w*|drop\w*)\b/i,
+  ],
 ];
-const EXPERIMENTAL = /\b(randomi[sz]ed|randomly assigned|assigned at random|random assignment|controlled (?:trial|experiment)|experiment(?:al)?(?: group)?|instrument(?:al)? variable|natural experiment|difference-in-differences)\b/i;
-const OBSERVATIONAL = /\b(chose whether|self[- ]select\w*|volunt\w+|survey(?:ed)?|observational|correlat\w+|associated|not randomly|did not assign|cross-sectional|opt(?:ed)? in|their own choice)\b/i;
+const EXPERIMENTAL =
+  /\b(randomi[sz]ed|randomly assigned|assigned at random|random assignment|controlled (?:trial|experiment)|experiment(?:al)?(?: group)?|instrument(?:al)? variable|natural experiment|difference-in-differences)\b/i;
+const OBSERVATIONAL =
+  /\b(chose whether|self[- ]select\w*|volunt\w+|survey(?:ed)?|observational|correlat\w+|associated|not randomly|did not assign|cross-sectional|opt(?:ed)? in|their own choice)\b/i;
 
 function bestSentence(passageText: string, claim: string): string {
   const sents = splitSentences(passageText);
   const ct = new Set(tokenize(claim));
-  let best = sents[0]?.text ?? passageText; let bs = -1;
+  let best = sents[0]?.text ?? passageText;
+  let bs = -1;
   for (const s of sents) {
     const sc = tokenize(s.text).filter((t) => ct.has(t)).length;
-    if (sc > bs) { bs = sc; best = s.text; }
+    if (sc > bs) {
+      bs = sc;
+      best = s.text;
+    }
   }
   return best;
 }
 
-const STRONG_MARKER_RE = /^(causes?|caused|causing|leads? to|led to|leading to|results? in|resulted in|because of|due to|owing to|thanks to|as a result of|effects? of|impact (?:of|on)|drives?|drove|driven by|produces?|produced|responsible for)$/i;
-function unitClass(n: NumFact): string { return n.unit === 'pp' ? 'percent' : n.unit; }
+const STRONG_MARKER_RE =
+  /^(causes?|caused|causing|leads? to|led to|leading to|results? in|resulted in|because of|due to|owing to|thanks to|as a result of|effects? of|impact (?:of|on)|drives?|drove|driven by|produces?|produced|responsible for)$/i;
+function unitClass(n: NumFact): string {
+  return n.unit === 'pp' ? 'percent' : n.unit;
+}
 
 export function verifyClaim(claim: Claim, index: PassageIndex, all: IndexedPassage[]): ClaimVerdict {
-  const base = { claimId: claim.id, claim: claim.text, engine: 'deterministic-baseline/1' };
-  if (!all.length) return { ...base, verdict: 'insufficient', passageId: null, quote: null, reasons: ['No source passages are available for this assignment.'], stale: false };
+  const base = {
+    claimId: claim.id,
+    claim: claim.text,
+    engine: 'deterministic-baseline/1',
+  };
+  if (!all.length)
+    return {
+      ...base,
+      verdict: 'insufficient',
+      passageId: null,
+      quote: null,
+      reasons: ['No source passages are available for this assignment.'],
+      stale: false,
+    };
   // Coverage is measured on the claim's subject matter; the causal verb itself ("raised") is what the passage may lack.
   const marker = causalMarker(claim.text);
   const subject = marker ? claim.text.replace(STRONG_MARKER_RE.test(marker) ? marker : marker.split(/\s+/)[0], ' ') : claim.text;
   const hits = index.search(subject, 3);
   if (!hits.length) {
     const anyUnreadable = all.some((p) => p.unreadable);
-    return { ...base, verdict: anyUnreadable ? 'unreadable' : 'insufficient', passageId: null, quote: null, reasons: [anyUnreadable ? 'A source could not be read; add its text or run OCR.' : 'No passage shares meaningful vocabulary with this claim.'], stale: false };
+    return {
+      ...base,
+      verdict: anyUnreadable ? 'unreadable' : 'insufficient',
+      passageId: null,
+      quote: null,
+      reasons: [anyUnreadable ? 'A source could not be read; add its text or run OCR.' : 'No passage shares meaningful vocabulary with this claim.'],
+      stale: false,
+    };
   }
   const top = hits[0];
   const p = top.passage;
   // A study's design is described once for the whole source, so look at the same source's top hits, never other sources.
   const srcKey = (id: string) => id.replace(/_p\d+$/, '');
-  const designText = hits.filter((h) => srcKey(h.passage.id) === srcKey(p.id)).map((h) => h.passage.text).join(' ');
+  const designText = hits
+    .filter((h) => srcKey(h.passage.id) === srcKey(p.id))
+    .map((h) => h.passage.text)
+    .join(' ');
   const sent = bestSentence(p.text, claim.text);
   const reasons: string[] = [];
   let verdict: Verdict = 'supported';
   const cov = top.coverage;
-  if (p.unreadable) return { ...base, verdict: 'unreadable', passageId: p.id, quote: null, reasons: ['The matching source could not be read.'], stale: !!p.stale };
+  if (p.unreadable)
+    return {
+      ...base,
+      verdict: 'unreadable',
+      passageId: p.id,
+      quote: null,
+      reasons: ['The matching source could not be read.'],
+      stale: !!p.stale,
+    };
 
   const claimNums = extractNumbers(claim.text);
   const passNums = extractNumbers(sent);
@@ -161,10 +245,16 @@ export function verifyClaim(claim: Claim, index: PassageIndex, all: IndexedPassa
     if (same) continue;
     // A figure derived from two figures in the passage (a difference in points, or a relative change) is a calculation, not a new fact.
     if ((cn.unit === 'pp' || cn.unit === 'percent') && passPercents.length >= 2) {
-      const [a, b] = passPercents; const pts = Math.abs(b.value - a.value); const rel = Math.abs(((b.value - a.value) / a.value) * 100);
+      const [a, b] = passPercents;
+      const pts = Math.abs(b.value - a.value);
+      const rel = Math.abs(((b.value - a.value) / a.value) * 100);
       if (Math.abs(cn.value - pts) < 0.051 || Math.abs(cn.value - rel) < 0.06) {
-        if (cn.unit === 'percent' && Math.abs(cn.value - pts) < 0.051) { if (verdict === 'supported') verdict = 'partial'; reasons.push(`"${cn.raw}" is ambiguous: the passage's ${a.raw} to ${b.raw} is ${pts} percentage points and about ${Math.round(rel * 10) / 10}% in relative terms.`); }
-        else reasons.push(`"${cn.raw}" is derived from ${a.raw} and ${b.raw} in the passage.`);
+        if (cn.unit === 'percent' && Math.abs(cn.value - pts) < 0.051) {
+          if (verdict === 'supported') verdict = 'partial';
+          reasons.push(
+            `"${cn.raw}" is ambiguous: the passage's ${a.raw} to ${b.raw} is ${pts} percentage points and about ${Math.round(rel * 10) / 10}% in relative terms.`,
+          );
+        } else reasons.push(`"${cn.raw}" is derived from ${a.raw} and ${b.raw} in the passage.`);
         continue;
       }
     }
@@ -179,50 +269,88 @@ export function verifyClaim(claim: Claim, index: PassageIndex, all: IndexedPassa
   }
   // A projection or expectation in the source must not become a plain statement of fact in the claim.
   if (verdict === 'supported' && hasExpectation(sent) && !hasExpectation(claim.text)) {
-    verdict = 'partial'; reasons.push('The passage states an expectation or projection; the claim states it as established fact.');
+    verdict = 'partial';
+    reasons.push('The passage states an expectation or projection; the claim states it as established fact.');
   }
   // A qualifier such as "statistically significant" or "on average" that the source attaches must survive in the claim.
   if (verdict === 'supported') {
     for (const q of QUALIFICATIONS) {
       if (['only', 'among', 'sample', 'some', 'pilot'].includes(q)) continue;
-      if (new RegExp(`\\b${q}\\b`, 'i').test(sent) && !new RegExp(`\\b${q}\\b`, 'i').test(claim.text)) { verdict = 'partial'; reasons.push(`The passage qualifies this with "${q}"; the claim drops that qualification.`); break; }
+      if (new RegExp(`\\b${q}\\b`, 'i').test(sent) && !new RegExp(`\\b${q}\\b`, 'i').test(claim.text)) {
+        verdict = 'partial';
+        reasons.push(`The passage qualifies this with "${q}"; the claim drops that qualification.`);
+        break;
+      }
     }
   }
-  const cNeg = negations(claim.text).length > 0; const pNeg = negations(sent).length > 0;
-  if (cov >= 0.4 && cNeg !== pNeg) { verdict = 'contradicted'; reasons.push(cNeg ? 'The claim negates something the passage states.' : 'The passage negates something the claim states.'); }
+  const cNeg = negations(claim.text).length > 0;
+  const pNeg = negations(sent).length > 0;
+  if (cov >= 0.4 && cNeg !== pNeg) {
+    verdict = 'contradicted';
+    reasons.push(cNeg ? 'The claim negates something the passage states.' : 'The passage negates something the claim states.');
+  }
   for (const [a, b] of OPPOSITES) {
     if (cov >= 0.4 && ((a.test(claim.text) && b.test(sent) && !a.test(sent)) || (b.test(claim.text) && a.test(sent) && !b.test(sent)))) {
-      verdict = 'contradicted'; reasons.push('The claim and the passage point in opposite directions.');
+      verdict = 'contradicted';
+      reasons.push('The claim and the passage point in opposite directions.');
     }
   }
   if (verdict === 'supported') {
-    if (cov < 0.34) { verdict = 'insufficient'; reasons.push('Only a small part of the claim is covered by the best passage.'); }
-    else if (cov < 0.6) { verdict = 'partial'; reasons.push(`The passage covers about ${Math.round(cov * 100)}% of the claim's terms; the rest is not supported there.`); }
+    if (cov < 0.34) {
+      verdict = 'insufficient';
+      reasons.push('Only a small part of the claim is covered by the best passage.');
+    } else if (cov < 0.6) {
+      verdict = 'partial';
+      reasons.push(`The passage covers about ${Math.round(cov * 100)}% of the claim's terms; the rest is not supported there.`);
+    }
   }
   // Causal overreach: association in the source, causation in the claim.
   const cm = causalMarker(claim.text);
   if (cm && verdict !== 'contradicted' && verdict !== 'insufficient') {
     if (!EXPERIMENTAL.test(designText) && !(causalMarker(sent) && !isAssociational(sent))) {
       verdict = 'partial';
-      reasons.push(OBSERVATIONAL.test(designText)
-        ? `"${cm}" asserts causation, but the passage describes a comparison where participants chose their own group. It supports an association, not a cause.`
-        : `"${cm}" asserts causation, but the passage does not describe a design that can establish a cause.`);
+      reasons.push(
+        OBSERVATIONAL.test(designText)
+          ? `"${cm}" asserts causation, but the passage describes a comparison where participants chose their own group. It supports an association, not a cause.`
+          : `"${cm}" asserts causation, but the passage does not describe a design that can establish a cause.`,
+      );
     }
   }
   if (!reasons.length) reasons.push('Terms, figures and direction match the passage.');
   const q = findQuote(p.text, sent);
-  return { ...base, verdict, passageId: p.id, quote: q ? { ...q, text: p.text.slice(q.start, q.end) } : null, reasons, stale: !!p.stale };
+  return {
+    ...base,
+    verdict,
+    passageId: p.id,
+    quote: q ? { ...q, text: p.text.slice(q.start, q.end) } : null,
+    reasons,
+    stale: !!p.stale,
+  };
 }
 
 export function verifyParagraph(paragraph: string, passages: IndexedPassage[], idPrefix = 'c'): { claims: Claim[]; verdicts: ClaimVerdict[] } {
   const index = new PassageIndex(passages);
   const claims = splitClaims(paragraph, idPrefix);
-  return { claims, verdicts: claims.map((c) => verifyClaim(c, index, passages)) };
+  return {
+    claims,
+    verdicts: claims.map((c) => verifyClaim(c, index, passages)),
+  };
 }
 
 /** Cautious merge of two verdicts about the same claim (deterministic + model). The worse outcome wins; disagreement is reported. */
-const SEVERITY: Record<Verdict, number> = { supported: 0, partial: 1, insufficient: 2, unreadable: 2, contradicted: 3 };
+const SEVERITY: Record<Verdict, number> = {
+  supported: 0,
+  partial: 1,
+  insufficient: 2,
+  unreadable: 2,
+  contradicted: 3,
+};
 export function mergeVerdicts(a: ClaimVerdict, b: ClaimVerdict): ClaimVerdict & { disagreement: boolean } {
   const worse = SEVERITY[b.verdict] > SEVERITY[a.verdict] ? b : a;
-  return { ...worse, reasons: [...new Set([...a.reasons, ...b.reasons])], engine: `${a.engine}+${b.engine}`, disagreement: a.verdict !== b.verdict };
+  return {
+    ...worse,
+    reasons: [...new Set([...a.reasons, ...b.reasons])],
+    engine: `${a.engine}+${b.engine}`,
+    disagreement: a.verdict !== b.verdict,
+  };
 }

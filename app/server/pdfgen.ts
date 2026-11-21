@@ -1,10 +1,27 @@
 // Minimal PDF writer (pdf-lib, Helvetica). Used for the printable process report and for test PDFs with printed page labels.
 import { PDFDocument, PDFName, StandardFonts, rgb } from 'pdf-lib';
 
-export interface PdfPageSpec { lines: string[]; heading?: string }
-export interface PdfOptions { title?: string; labels?: { startIndex: number; style: 'D' | 'r' | 'R' | 'a' | 'A'; start?: number; prefix?: string }[] }
+export interface PdfPageSpec {
+  lines: string[];
+  heading?: string;
+}
+export interface PdfOptions {
+  title?: string;
+  labels?: {
+    startIndex: number;
+    style: 'D' | 'r' | 'R' | 'a' | 'A';
+    start?: number;
+    prefix?: string;
+  }[];
+}
 
-const WIN_ANSI_SAFE = (s: string) => s.replace(/[‘’]/g, "'").replace(/[“”]/g, '"').replace(/[–—]/g, '-').replace(/…/g, '...').replace(/[^\x09\x0A\x0D\x20-\x7E\xA0-\xFF]/g, '?');
+const WIN_ANSI_SAFE = (s: string) =>
+  s
+    .replace(/[‘’]/g, "'")
+    .replace(/[“”]/g, '"')
+    .replace(/[–—]/g, '-')
+    .replace(/…/g, '...')
+    .replace(/[^\x09\x0A\x0D\x20-\x7E\xA0-\xFF]/g, '?');
 
 export async function makePdf(pages: PdfPageSpec[], opts: PdfOptions = {}): Promise<Uint8Array> {
   const pdf = await PDFDocument.create();
@@ -16,10 +33,28 @@ export async function makePdf(pages: PdfPageSpec[], opts: PdfOptions = {}): Prom
   for (const spec of pages) {
     const page = pdf.addPage([612, 792]);
     let y = 740;
-    if (spec.heading) { page.drawText(WIN_ANSI_SAFE(spec.heading), { x: 56, y, size: 14, font: bold, color: rgb(0, 0, 0) }); y -= 28; }
+    if (spec.heading) {
+      page.drawText(WIN_ANSI_SAFE(spec.heading), {
+        x: 56,
+        y,
+        size: 14,
+        font: bold,
+        color: rgb(0, 0, 0),
+      });
+      y -= 28;
+    }
     for (const line of spec.lines) {
-      if (line === '') { y -= 10; continue; }
-      page.drawText(WIN_ANSI_SAFE(line), { x: 56, y, size: 11, font, color: rgb(0, 0, 0) });
+      if (line === '') {
+        y -= 10;
+        continue;
+      }
+      page.drawText(WIN_ANSI_SAFE(line), {
+        x: 56,
+        y,
+        size: 11,
+        font,
+        color: rgb(0, 0, 0),
+      });
       y -= 15;
     }
   }
@@ -40,10 +75,16 @@ export async function makePdf(pages: PdfPageSpec[], opts: PdfOptions = {}): Prom
 export function wrap(text: string, width = 92): string[] {
   const out: string[] = [];
   for (const para of text.split('\n')) {
-    if (!para.trim()) { out.push(''); continue; }
+    if (!para.trim()) {
+      out.push('');
+      continue;
+    }
     let line = '';
     for (const w of para.split(/\s+/)) {
-      if ((line + ' ' + w).trim().length > width) { out.push(line); line = w; } else line = (line + ' ' + w).trim();
+      if ((line + ' ' + w).trim().length > width) {
+        out.push(line);
+        line = w;
+      } else line = (line + ' ' + w).trim();
     }
     if (line) out.push(line);
   }
@@ -52,6 +93,10 @@ export function wrap(text: string, width = 92): string[] {
 
 export function paginate(lines: string[], perPage = 42, heading?: string): PdfPageSpec[] {
   const pages: PdfPageSpec[] = [];
-  for (let i = 0; i < lines.length; i += perPage) pages.push({ lines: lines.slice(i, i + perPage), heading: i === 0 ? heading : undefined });
+  for (let i = 0; i < lines.length; i += perPage)
+    pages.push({
+      lines: lines.slice(i, i + perPage),
+      heading: i === 0 ? heading : undefined,
+    });
   return pages.length ? pages : [{ lines: [], heading }];
 }

@@ -12,11 +12,28 @@ import { tokenize } from './evidence.ts';
 
 export const POLICY_VERSION = 'writing-studio-policy/1 (humanizer-rules@a32f244 subset + hygiene@5a62be6 layer-A port)';
 export const POLICY_PROVENANCE = {
-  humanizer: { repo: 'https://github.com/blader/humanizer', sha: 'a32f24407364c74c812b43c15926d638bee1e072', license: 'MIT', used: 'pattern catalog subset, reimplemented' },
-  watermarksRemover: { repo: 'https://github.com/guillaumemeyer/watermarks-remover', sha: '5a62be6338d2812372b1da440e55c82922f97d53', license: 'MIT', used: 'clean-user-facing-text Layer A (invisible Unicode) behavior, reimplemented; detector-lever workflow, remove-ai-marks and stealer NOT used' },
+  humanizer: {
+    repo: 'https://github.com/blader/humanizer',
+    sha: 'a32f24407364c74c812b43c15926d638bee1e072',
+    license: 'MIT',
+    used: 'pattern catalog subset, reimplemented',
+  },
+  watermarksRemover: {
+    repo: 'https://github.com/guillaumemeyer/watermarks-remover',
+    sha: '5a62be6338d2812372b1da440e55c82922f97d53',
+    license: 'MIT',
+    used: 'clean-user-facing-text Layer A (invisible Unicode) behavior, reimplemented; detector-lever workflow, remove-ai-marks and stealer NOT used',
+  },
 };
 
-export interface VoiceSample { id: string; text: string; genre: string; language: string; audience: string; register: string }
+export interface VoiceSample {
+  id: string;
+  text: string;
+  genre: string;
+  language: string;
+  audience: string;
+  register: string;
+}
 export interface VoiceProfile {
   directness: 'direct' | 'neutral' | 'formal';
   firstPerson: 'avoid' | 'allow' | 'prefer';
@@ -28,8 +45,22 @@ export interface VoiceProfile {
   /** set true only after the writer confirmed each preference against a real sample */
   confirmed: Record<string, boolean>;
 }
-export const NEUTRAL_PROFILE: VoiceProfile = { directness: 'neutral', firstPerson: 'allow', avoidEmDash: false, preferredTerms: {}, openings: [], language: 'auto', notes: '', confirmed: {} };
-export const FOUNDER_PROFILE: VoiceProfile = { ...NEUTRAL_PROFILE, directness: 'direct', avoidEmDash: true, notes: 'Concise direct prose; no em dashes.' };
+export const NEUTRAL_PROFILE: VoiceProfile = {
+  directness: 'neutral',
+  firstPerson: 'allow',
+  avoidEmDash: false,
+  preferredTerms: {},
+  openings: [],
+  language: 'auto',
+  notes: '',
+  confirmed: {},
+};
+export const FOUNDER_PROFILE: VoiceProfile = {
+  ...NEUTRAL_PROFILE,
+  directness: 'direct',
+  avoidEmDash: true,
+  notes: 'Concise direct prose; no em dashes.',
+};
 
 export function detectLanguage(text: string): 'en' | 'es' | 'he' | 'other' {
   if (/[֐-׿]/.test(text) && (text.match(/[֐-׿]/g)?.length ?? 0) > text.length * 0.2) return 'he';
@@ -44,7 +75,11 @@ export function detectLanguage(text: string): 'en' | 'es' | 'he' | 'other' {
 }
 
 export interface ClarityFlag {
-  rule: string; quote: string; start: number; end: number; effect: string;
+  rule: string;
+  quote: string;
+  start: number;
+  end: number;
+  effect: string;
   fix?: { replacement: string; mechanical: true };
 }
 
@@ -56,7 +91,8 @@ const STOCK_FIX: [RegExp, string][] = [
   [/\bhas the ability to\b/gi, 'can'],
   [/\butili[sz](e|es|ed|ing)\b/gi, 'use'],
 ];
-const STOCK_WORDS = /\b(delve[sd]?|delving|tapestry|testament|underscore[sd]?|underscoring|foster(?:s|ed|ing)?|seamless(?:ly)?|multifaceted|myriad|paradigm shift|realm|intricate|navigate the complexities|in today[’']s fast-paced world|plays? a (?:crucial|vital|pivotal|key) role|it is important to note that|it(?:[’']s| is) worth noting that|stands? as a testament|a rich tapestry|ever-evolving|game-chang\w+)\b/gi;
+const STOCK_WORDS =
+  /\b(delve[sd]?|delving|tapestry|testament|underscore[sd]?|underscoring|foster(?:s|ed|ing)?|seamless(?:ly)?|multifaceted|myriad|paradigm shift|realm|intricate|navigate the complexities|in today[’']s fast-paced world|plays? a (?:crucial|vital|pivotal|key) role|it is important to note that|it(?:[’']s| is) worth noting that|stands? as a testament|a rich tapestry|ever-evolving|game-chang\w+)\b/gi;
 const TRANSITIONS = /(^|[.!?]\s+)(Moreover|Furthermore|Additionally|In addition|Overall|In conclusion|In summary|Ultimately),\s+/g;
 const NOMINAL: [RegExp, string][] = [
   [/\bconduct(?:ed)? an analysis of\b/gi, 'analyzed'],
@@ -70,7 +106,14 @@ const BORROWED = /\b(studies show|research shows|experts (?:say|agree)|many (?:p
 
 function flag(text: string, m: RegExpMatchArray | RegExpExecArray, rule: string, effect: string, fix?: string): ClarityFlag {
   const start = m.index!;
-  return { rule, quote: m[0], start, end: start + m[0].length, effect, fix: fix === undefined ? undefined : { replacement: fix, mechanical: true } };
+  return {
+    rule,
+    quote: m[0],
+    start,
+    end: start + m[0].length,
+    effect,
+    fix: fix === undefined ? undefined : { replacement: fix, mechanical: true },
+  };
 }
 
 /** Flags passages that read as stock phrasing. Every flag quotes the passage and says what it costs the reader. */
@@ -80,28 +123,52 @@ export function clarityFlags(text: string, profile: VoiceProfile = NEUTRAL_PROFI
   if (profile.avoidEmDash) {
     for (const m of text.matchAll(/\s?—\s?/g)) {
       const after = text.slice(m.index! + m[0].length, m.index! + m[0].length + 1);
-      flags.push(flag(text, m, 'em_dash', 'You asked to avoid em dashes; this one joins two ideas without saying how they relate.', /[a-z]/.test(after) ? ', ' : '. '));
+      flags.push(
+        flag(text, m, 'em_dash', 'You asked to avoid em dashes; this one joins two ideas without saying how they relate.', /[a-z]/.test(after) ? ', ' : '. '),
+      );
     }
   }
   if (lang !== 'en') return flags; // English-specific rules never run on other languages
-  for (const [re, rep] of STOCK_FIX) for (const m of text.matchAll(re)) flags.push(flag(text, m, 'wordy_phrase', 'A longer phrase says what a shorter one says; the reader spends effort on nothing.', rep));
+  for (const [re, rep] of STOCK_FIX)
+    for (const m of text.matchAll(re))
+      flags.push(flag(text, m, 'wordy_phrase', 'A longer phrase says what a shorter one says; the reader spends effort on nothing.', rep));
   for (const m of text.matchAll(STOCK_WORDS)) {
     const fix = /it is important to note that|it(?:[’']s| is) worth noting that/i.test(m[0]) ? '' : undefined;
     flags.push(flag(text, m, 'stock_vocabulary', 'Stock phrasing the reader has seen in many other places; it signals importance without giving a fact.', fix));
   }
-  for (const m of text.matchAll(TRANSITIONS)) flags.push({ rule: 'stock_transition', quote: m[2] + ',', start: m.index! + m[1].length, end: m.index! + m[0].length, effect: 'The transition names no relationship the reader cannot already see between the two sentences.', fix: { replacement: '', mechanical: true } });
-  for (const [re, rep] of NOMINAL) for (const m of text.matchAll(re)) flags.push(flag(text, m, 'nominalization', 'The action is buried in a noun, so the sentence is longer and the actor is harder to find.', rep));
-  for (const m of text.matchAll(/\bnot (?:just|only|merely) [^.,;]{3,60}, but (?:also )?/gi)) flags.push(flag(text, m, 'not_x_but_y', 'Stages a contrast with a claim nobody made, then states the real point.'));
-  for (const m of text.matchAll(/\b(?:marks?|represents?|serves? as) a (?:pivotal|significant|crucial|key) (?:moment|step|milestone|turning point)\b/gi)) flags.push(flag(text, m, 'inflated_significance', 'Labels something as important instead of showing why.'));
+  for (const m of text.matchAll(TRANSITIONS))
+    flags.push({
+      rule: 'stock_transition',
+      quote: m[2] + ',',
+      start: m.index! + m[1].length,
+      end: m.index! + m[0].length,
+      effect: 'The transition names no relationship the reader cannot already see between the two sentences.',
+      fix: { replacement: '', mechanical: true },
+    });
+  for (const [re, rep] of NOMINAL)
+    for (const m of text.matchAll(re))
+      flags.push(flag(text, m, 'nominalization', 'The action is buried in a noun, so the sentence is longer and the actor is harder to find.', rep));
+  for (const m of text.matchAll(/\bnot (?:just|only|merely) [^.,;]{3,60}, but (?:also )?/gi))
+    flags.push(flag(text, m, 'not_x_but_y', 'Stages a contrast with a claim nobody made, then states the real point.'));
+  for (const m of text.matchAll(/\b(?:marks?|represents?|serves? as) a (?:pivotal|significant|crucial|key) (?:moment|step|milestone|turning point)\b/gi))
+    flags.push(flag(text, m, 'inflated_significance', 'Labels something as important instead of showing why.'));
   for (const m of text.matchAll(BORROWED)) flags.push(flag(text, m, 'unattributed_authority', 'Appeals to unnamed authority; the reader cannot check it.'));
-  for (const m of text.matchAll(CHATBOT)) flags.push(flag(text, m, 'chat_residue', 'A leftover from a chat conversation; it is addressed to nobody in your reader\'s position.', ''));
-  for (const m of text.matchAll(/\b(?:very|extremely|highly) (?:important|significant|crucial|essential)\b/gi)) flags.push(flag(text, m, 'vague_importance', 'Claims importance without a figure, example or consequence.'));
+  for (const m of text.matchAll(CHATBOT))
+    flags.push(flag(text, m, 'chat_residue', "A leftover from a chat conversation; it is addressed to nobody in your reader's position.", ''));
+  for (const m of text.matchAll(/\b(?:very|extremely|highly) (?:important|significant|crucial|essential)\b/gi))
+    flags.push(flag(text, m, 'vague_importance', 'Claims importance without a figure, example or consequence.'));
   // Repeated sentence openings (3 in a row)
   const sents = splitSentences(text);
   for (let i = 0; i + 2 < sents.length; i++) {
     const w = (s: { text: string }) => s.text.split(/\s+/)[0]?.toLowerCase();
     if (w(sents[i]) && w(sents[i]) === w(sents[i + 1]) && w(sents[i]) === w(sents[i + 2])) {
-      flags.push({ rule: 'repeated_openings', quote: sents[i].text.split(/\s+/)[0], start: sents[i].start, end: sents[i + 2].end, effect: 'Three sentences in a row open the same way, so the paragraph reads as a list.' });
+      flags.push({
+        rule: 'repeated_openings',
+        quote: sents[i].text.split(/\s+/)[0],
+        start: sents[i].start,
+        end: sents[i + 2].end,
+        effect: 'Three sentences in a row open the same way, so the paragraph reads as a list.',
+      });
       break;
     }
   }
@@ -110,22 +177,50 @@ export function clarityFlags(text: string, profile: VoiceProfile = NEUTRAL_PROFI
 
 /** Cross-paragraph checks: conclusions that merely repeat an earlier insight, and repeated endings. */
 export function structureFlags(paragraphs: { id: string; text: string }[]): { paragraphId: string; rule: string; quote: string; effect: string }[] {
-  const out: { paragraphId: string; rule: string; quote: string; effect: string }[] = [];
+  const out: {
+    paragraphId: string;
+    rule: string;
+    quote: string;
+    effect: string;
+  }[] = [];
   const overlap = (a: string, b: string) => {
-    const A = new Set(tokenize(a)); const B = new Set(tokenize(b));
+    const A = new Set(tokenize(a));
+    const B = new Set(tokenize(b));
     if (A.size < 4 || B.size < 4) return 0;
-    let n = 0; for (const t of A) if (B.has(t)) n++;
+    let n = 0;
+    for (const t of A) if (B.has(t)) n++;
     return n / Math.min(A.size, B.size);
   };
   const lastOf = (t: string) => splitSentences(t).at(-1)?.text ?? '';
   paragraphs.forEach((p, i) => {
     const last = lastOf(p.text);
     const sents = splitSentences(p.text);
-    if (sents.length >= 3 && overlap(last, sents[0].text) >= 0.6) out.push({ paragraphId: p.id, rule: 'conclusion_repeats_opening', quote: last, effect: 'The closing sentence repeats the opening one, so the paragraph ends where it began.' });
-    if (i > 0 && last && overlap(last, lastOf(paragraphs[i - 1].text)) >= 0.6) out.push({ paragraphId: p.id, rule: 'repeated_paragraph_ending', quote: last, effect: 'This paragraph ends on the same note as the previous one; the reader meets the same ending twice.' });
+    if (sents.length >= 3 && overlap(last, sents[0].text) >= 0.6)
+      out.push({
+        paragraphId: p.id,
+        rule: 'conclusion_repeats_opening',
+        quote: last,
+        effect: 'The closing sentence repeats the opening one, so the paragraph ends where it began.',
+      });
+    if (i > 0 && last && overlap(last, lastOf(paragraphs[i - 1].text)) >= 0.6)
+      out.push({
+        paragraphId: p.id,
+        rule: 'repeated_paragraph_ending',
+        quote: last,
+        effect: 'This paragraph ends on the same note as the previous one; the reader meets the same ending twice.',
+      });
     if (i === paragraphs.length - 1 && paragraphs.length > 2) {
       for (const earlier of paragraphs.slice(0, -1)) {
-        for (const s of splitSentences(earlier.text)) if (overlap(last, s.text) >= 0.75 && last.length > 20) { out.push({ paragraphId: p.id, rule: 'conclusion_repeats_insight', quote: last, effect: 'The conclusion restates an insight from earlier without adding to it.' }); return; }
+        for (const s of splitSentences(earlier.text))
+          if (overlap(last, s.text) >= 0.75 && last.length > 20) {
+            out.push({
+              paragraphId: p.id,
+              rule: 'conclusion_repeats_insight',
+              quote: last,
+              effect: 'The conclusion restates an insight from earlier without adding to it.',
+            });
+            return;
+          }
       }
     }
   });
@@ -159,22 +254,54 @@ export function voiceEdit(text: string, profile: VoiceProfile = NEUTRAL_PROFILE,
       const rest = out.slice(end);
       out = out.slice(0, f.start) + rep + rest.charAt(0).toUpperCase() + rest.slice(1);
     } else out = out.slice(0, f.start) + rep + out.slice(end);
-    changes.unshift({ rule: f.rule, before: f.quote, after: rep, effect: f.effect });
+    changes.unshift({
+      rule: f.rule,
+      before: f.quote,
+      after: rep,
+      effect: f.effect,
+    });
   }
   const cleaned = cleanUnicode(out);
   out = cleaned.text;
   const meaning = compareMeaning(text, out);
   if (meaning.outcome !== 'acceptable' || out === text) {
-    return { replacement: text, changes: [], noChange: true, meaning: compareMeaning(text, text), hygieneRemoved: 0, policyVersion: POLICY_VERSION, reason: out === text ? 'Already clear; keeping your wording.' : 'A mechanical edit would have changed meaning; keeping your wording.' };
+    return {
+      replacement: text,
+      changes: [],
+      noChange: true,
+      meaning: compareMeaning(text, text),
+      hygieneRemoved: 0,
+      policyVersion: POLICY_VERSION,
+      reason: out === text ? 'Already clear; keeping your wording.' : 'A mechanical edit would have changed meaning; keeping your wording.',
+    };
   }
-  return { replacement: out, changes, noChange: false, meaning, hygieneRemoved: cleaned.removed.length, policyVersion: POLICY_VERSION, reason: changes.map((c) => c.rule).join(', ') };
+  return {
+    replacement: out,
+    changes,
+    noChange: false,
+    meaning,
+    hygieneRemoved: cleaned.removed.length,
+    policyVersion: POLICY_VERSION,
+    reason: changes.map((c) => c.rule).join(', '),
+  };
 }
 
 // --- profile calibration ------------------------------------------------------------------------
 export interface ProfileSuggestion {
   profile: VoiceProfile;
-  stats: { avgSentenceWords: number; firstPersonRate: number; emDashRate: number; contractionRate: number; samples: number };
-  previews: { preference: string; sample: string; proposed: string; hasExample: boolean }[];
+  stats: {
+    avgSentenceWords: number;
+    firstPersonRate: number;
+    emDashRate: number;
+    contractionRate: number;
+    samples: number;
+  };
+  previews: {
+    preference: string;
+    sample: string;
+    proposed: string;
+    hasExample: boolean;
+  }[];
 }
 
 export function suggestProfile(samples: VoiceSample[]): ProfileSuggestion {
@@ -192,15 +319,37 @@ export function suggestProfile(samples: VoiceSample[]): ProfileSuggestion {
     directness: avg > 0 && avg < 15 ? 'direct' : avg > 24 ? 'formal' : 'neutral',
     firstPerson: fp > 0.02 ? 'allow' : 'avoid',
     avoidEmDash: em === 0 && sents.length >= 3,
-    openings, language: lang === 'other' ? 'auto' : lang, confirmed: {},
+    openings,
+    language: lang === 'other' ? 'auto' : lang,
+    confirmed: {},
   };
   const previews: ProfileSuggestion['previews'] = [];
   const sentWithEm = sents.find((s) => s.text.includes('—'));
   const pe: VoiceProfile = { ...profile, avoidEmDash: true };
-  previews.push({ preference: 'avoidEmDash', sample: sentWithEm?.text ?? '', proposed: sentWithEm ? voiceEdit(sentWithEm.text, pe).replacement : '', hasExample: !!sentWithEm });
+  previews.push({
+    preference: 'avoidEmDash',
+    sample: sentWithEm?.text ?? '',
+    proposed: sentWithEm ? voiceEdit(sentWithEm.text, pe).replacement : '',
+    hasExample: !!sentWithEm,
+  });
   const wordy = sents.find((s) => clarityFlags(s.text, profile).some((f) => f.fix));
-  previews.push({ preference: 'clearerPhrasing', sample: wordy?.text ?? '', proposed: wordy ? voiceEdit(wordy.text, profile).replacement : '', hasExample: !!wordy });
-  return { profile, stats: { avgSentenceWords: Math.round(avg * 10) / 10, firstPersonRate: Math.round(fp * 1000) / 1000, emDashRate: Math.round(em * 100) / 100, contractionRate: Math.round(contr * 1000) / 1000, samples: samples.length }, previews };
+  previews.push({
+    preference: 'clearerPhrasing',
+    sample: wordy?.text ?? '',
+    proposed: wordy ? voiceEdit(wordy.text, profile).replacement : '',
+    hasExample: !!wordy,
+  });
+  return {
+    profile,
+    stats: {
+      avgSentenceWords: Math.round(avg * 10) / 10,
+      firstPersonRate: Math.round(fp * 1000) / 1000,
+      emDashRate: Math.round(em * 100) / 100,
+      contractionRate: Math.round(contr * 1000) / 1000,
+      samples: samples.length,
+    },
+    previews,
+  };
 }
 
 export { splitParagraphs };
