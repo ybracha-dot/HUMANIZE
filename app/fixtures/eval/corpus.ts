@@ -272,7 +272,7 @@ export const FIXTURES: Fx[] = [
         claim: 'gained 4 points',
         verdict: 'partial',
         gold: 's_p2',
-        knownMiss: 'Reports contradicted for the same negation-scope reason ("not statistically significant" negates the difference, not the gain).',
+        knownMiss: 'Baseline-only miss, fixed by the revised rules. Reported contradicted for the same negation-scope reason ("not statistically significant" negates the difference, not the gain).',
       },
     ],
   },

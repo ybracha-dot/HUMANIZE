@@ -1,0 +1,790 @@
+{
+  "note": "Small synthetic sets. Numbers describe these fixtures only; they are not population accuracy. unseen was written before the revised rules and run once.",
+  "generatedBy": "tests/unit/eval2.test.ts",
+  "sets": {
+    "frozen22": {
+      "baseline": {
+        "claims": 22,
+        "sourceDocuments": 16,
+        "exact": 17,
+        "confusion": {
+          "supported": {
+            "supported": 13,
+            "partial": 1,
+            "contradicted": 0,
+            "insufficient": 1,
+            "unreadable": 0,
+            "claim_not_found": 0
+          },
+          "partial": {
+            "supported": 0,
+            "partial": 0,
+            "contradicted": 2,
+            "insufficient": 0,
+            "unreadable": 0,
+            "claim_not_found": 0
+          },
+          "contradicted": {
+            "supported": 0,
+            "partial": 0,
+            "contradicted": 3,
+            "insufficient": 0,
+            "unreadable": 0,
+            "claim_not_found": 0
+          },
+          "insufficient": {
+            "supported": 0,
+            "partial": 0,
+            "contradicted": 1,
+            "insufficient": 1,
+            "unreadable": 0,
+            "claim_not_found": 0
+          },
+          "unreadable": {
+            "supported": 0,
+            "partial": 0,
+            "contradicted": 0,
+            "insufficient": 0,
+            "unreadable": 0,
+            "claim_not_found": 0
+          }
+        },
+        "genuinelyUnsupported": 7,
+        "unsafeApprovals": {
+          "count": 0,
+          "outOf": 7,
+          "items": []
+        },
+        "supportedClaims": 15,
+        "wronglyFlaggedSupported": {
+          "outOf": 15,
+          "total": 2,
+          "calledContradicted": 0,
+          "calledPartial": 1,
+          "abstained": 1,
+          "items": [
+            "h04/62% of students: partial",
+            "h05/attended frequently: insufficient"
+          ]
+        },
+        "unsupportedButWrongKind": {
+          "outOf": 7,
+          "count": 3,
+          "items": [
+            "h03/averaged 84: expected insufficient, said contradicted",
+            "h07/Lack of sleep: expected partial, said contradicted",
+            "h08/gained 4 points: expected partial, said contradicted"
+          ]
+        },
+        "abstentions": {
+          "total": 2,
+          "correct": 1,
+          "onUnsupported": 1,
+          "onSupported": 1
+        }
+      },
+      "revised": {
+        "claims": 22,
+        "sourceDocuments": 16,
+        "exact": 20,
+        "confusion": {
+          "supported": {
+            "supported": 13,
+            "partial": 0,
+            "contradicted": 0,
+            "insufficient": 2,
+            "unreadable": 0,
+            "claim_not_found": 0
+          },
+          "partial": {
+            "supported": 0,
+            "partial": 2,
+            "contradicted": 0,
+            "insufficient": 0,
+            "unreadable": 0,
+            "claim_not_found": 0
+          },
+          "contradicted": {
+            "supported": 0,
+            "partial": 0,
+            "contradicted": 3,
+            "insufficient": 0,
+            "unreadable": 0,
+            "claim_not_found": 0
+          },
+          "insufficient": {
+            "supported": 0,
+            "partial": 0,
+            "contradicted": 0,
+            "insufficient": 2,
+            "unreadable": 0,
+            "claim_not_found": 0
+          },
+          "unreadable": {
+            "supported": 0,
+            "partial": 0,
+            "contradicted": 0,
+            "insufficient": 0,
+            "unreadable": 0,
+            "claim_not_found": 0
+          }
+        },
+        "genuinelyUnsupported": 7,
+        "unsafeApprovals": {
+          "count": 0,
+          "outOf": 7,
+          "items": []
+        },
+        "supportedClaims": 15,
+        "wronglyFlaggedSupported": {
+          "outOf": 15,
+          "total": 2,
+          "calledContradicted": 0,
+          "calledPartial": 0,
+          "abstained": 2,
+          "items": [
+            "h04/62% of students: insufficient",
+            "h05/attended frequently: insufficient"
+          ]
+        },
+        "unsupportedButWrongKind": {
+          "outOf": 7,
+          "count": 0,
+          "items": []
+        },
+        "abstentions": {
+          "total": 4,
+          "correct": 2,
+          "onUnsupported": 2,
+          "onSupported": 2
+        }
+      },
+      "missesRevised": [
+        {
+          "id": "h04/62% of students",
+          "tag": "bilingual",
+          "expected": "supported",
+          "predicted": "insufficient",
+          "reason": "The claim is in en and the passage is in es. This checker compares wording, so it cannot judge support across languages. Read the passage yourself."
+        },
+        {
+          "id": "h05/attended frequently",
+          "tag": "paraphrase",
+          "expected": "supported",
+          "predicted": "insufficient",
+          "reason": "No passage shares meaningful vocabulary with this claim."
+        }
+      ]
+    },
+    "dev15": {
+      "baseline": {
+        "claims": 15,
+        "sourceDocuments": 14,
+        "exact": 15,
+        "confusion": {
+          "supported": {
+            "supported": 6,
+            "partial": 0,
+            "contradicted": 0,
+            "insufficient": 0,
+            "unreadable": 0,
+            "claim_not_found": 0
+          },
+          "partial": {
+            "supported": 0,
+            "partial": 3,
+            "contradicted": 0,
+            "insufficient": 0,
+            "unreadable": 0,
+            "claim_not_found": 0
+          },
+          "contradicted": {
+            "supported": 0,
+            "partial": 0,
+            "contradicted": 5,
+            "insufficient": 0,
+            "unreadable": 0,
+            "claim_not_found": 0
+          },
+          "insufficient": {
+            "supported": 0,
+            "partial": 0,
+            "contradicted": 0,
+            "insufficient": 1,
+            "unreadable": 0,
+            "claim_not_found": 0
+          },
+          "unreadable": {
+            "supported": 0,
+            "partial": 0,
+            "contradicted": 0,
+            "insufficient": 0,
+            "unreadable": 0,
+            "claim_not_found": 0
+          }
+        },
+        "genuinelyUnsupported": 9,
+        "unsafeApprovals": {
+          "count": 0,
+          "outOf": 9,
+          "items": []
+        },
+        "supportedClaims": 6,
+        "wronglyFlaggedSupported": {
+          "outOf": 6,
+          "total": 0,
+          "calledContradicted": 0,
+          "calledPartial": 0,
+          "abstained": 0,
+          "items": []
+        },
+        "unsupportedButWrongKind": {
+          "outOf": 9,
+          "count": 0,
+          "items": []
+        },
+        "abstentions": {
+          "total": 1,
+          "correct": 1,
+          "onUnsupported": 1,
+          "onSupported": 0
+        }
+      },
+      "revised": {
+        "claims": 15,
+        "sourceDocuments": 14,
+        "exact": 15,
+        "confusion": {
+          "supported": {
+            "supported": 6,
+            "partial": 0,
+            "contradicted": 0,
+            "insufficient": 0,
+            "unreadable": 0,
+            "claim_not_found": 0
+          },
+          "partial": {
+            "supported": 0,
+            "partial": 3,
+            "contradicted": 0,
+            "insufficient": 0,
+            "unreadable": 0,
+            "claim_not_found": 0
+          },
+          "contradicted": {
+            "supported": 0,
+            "partial": 0,
+            "contradicted": 5,
+            "insufficient": 0,
+            "unreadable": 0,
+            "claim_not_found": 0
+          },
+          "insufficient": {
+            "supported": 0,
+            "partial": 0,
+            "contradicted": 0,
+            "insufficient": 1,
+            "unreadable": 0,
+            "claim_not_found": 0
+          },
+          "unreadable": {
+            "supported": 0,
+            "partial": 0,
+            "contradicted": 0,
+            "insufficient": 0,
+            "unreadable": 0,
+            "claim_not_found": 0
+          }
+        },
+        "genuinelyUnsupported": 9,
+        "unsafeApprovals": {
+          "count": 0,
+          "outOf": 9,
+          "items": []
+        },
+        "supportedClaims": 6,
+        "wronglyFlaggedSupported": {
+          "outOf": 6,
+          "total": 0,
+          "calledContradicted": 0,
+          "calledPartial": 0,
+          "abstained": 0,
+          "items": []
+        },
+        "unsupportedButWrongKind": {
+          "outOf": 9,
+          "count": 0,
+          "items": []
+        },
+        "abstentions": {
+          "total": 1,
+          "correct": 1,
+          "onUnsupported": 1,
+          "onSupported": 0
+        }
+      },
+      "missesRevised": []
+    },
+    "dev2": {
+      "baseline": {
+        "claims": 9,
+        "sourceDocuments": 5,
+        "exact": 4,
+        "confusion": {
+          "supported": {
+            "supported": 1,
+            "partial": 1,
+            "contradicted": 2,
+            "insufficient": 0,
+            "unreadable": 0,
+            "claim_not_found": 0
+          },
+          "partial": {
+            "supported": 0,
+            "partial": 1,
+            "contradicted": 0,
+            "insufficient": 0,
+            "unreadable": 0,
+            "claim_not_found": 0
+          },
+          "contradicted": {
+            "supported": 0,
+            "partial": 0,
+            "contradicted": 2,
+            "insufficient": 1,
+            "unreadable": 0,
+            "claim_not_found": 0
+          },
+          "insufficient": {
+            "supported": 0,
+            "partial": 0,
+            "contradicted": 1,
+            "insufficient": 0,
+            "unreadable": 0,
+            "claim_not_found": 0
+          },
+          "unreadable": {
+            "supported": 0,
+            "partial": 0,
+            "contradicted": 0,
+            "insufficient": 0,
+            "unreadable": 0,
+            "claim_not_found": 0
+          }
+        },
+        "genuinelyUnsupported": 5,
+        "unsafeApprovals": {
+          "count": 0,
+          "outOf": 5,
+          "items": []
+        },
+        "supportedClaims": 4,
+        "wronglyFlaggedSupported": {
+          "outOf": 4,
+          "total": 3,
+          "calledContradicted": 2,
+          "calledPartial": 1,
+          "abstained": 0,
+          "items": [
+            "D1/The committee approved the budget.: contradicted",
+            "D3/Enrollment was 320 students in 2021.: partial",
+            "D4/Sales rose 4%.: contradicted"
+          ]
+        },
+        "unsupportedButWrongKind": {
+          "outOf": 5,
+          "count": 2,
+          "items": [
+            "D2/Enrollment was 105 students in 2020.: expected insufficient, said contradicted",
+            "D3/Enrollment was 400 students in 2021.: expected contradicted, said insufficient"
+          ]
+        },
+        "abstentions": {
+          "total": 1,
+          "correct": 0,
+          "onUnsupported": 1,
+          "onSupported": 0
+        }
+      },
+      "revised": {
+        "claims": 9,
+        "sourceDocuments": 5,
+        "exact": 7,
+        "confusion": {
+          "supported": {
+            "supported": 3,
+            "partial": 0,
+            "contradicted": 0,
+            "insufficient": 1,
+            "unreadable": 0,
+            "claim_not_found": 0
+          },
+          "partial": {
+            "supported": 0,
+            "partial": 1,
+            "contradicted": 0,
+            "insufficient": 0,
+            "unreadable": 0,
+            "claim_not_found": 0
+          },
+          "contradicted": {
+            "supported": 0,
+            "partial": 0,
+            "contradicted": 2,
+            "insufficient": 1,
+            "unreadable": 0,
+            "claim_not_found": 0
+          },
+          "insufficient": {
+            "supported": 0,
+            "partial": 0,
+            "contradicted": 0,
+            "insufficient": 1,
+            "unreadable": 0,
+            "claim_not_found": 0
+          },
+          "unreadable": {
+            "supported": 0,
+            "partial": 0,
+            "contradicted": 0,
+            "insufficient": 0,
+            "unreadable": 0,
+            "claim_not_found": 0
+          }
+        },
+        "genuinelyUnsupported": 5,
+        "unsafeApprovals": {
+          "count": 0,
+          "outOf": 5,
+          "items": []
+        },
+        "supportedClaims": 4,
+        "wronglyFlaggedSupported": {
+          "outOf": 4,
+          "total": 1,
+          "calledContradicted": 0,
+          "calledPartial": 0,
+          "abstained": 1,
+          "items": [
+            "D3/Enrollment was 320 students in 2021.: insufficient"
+          ]
+        },
+        "unsupportedButWrongKind": {
+          "outOf": 5,
+          "count": 1,
+          "items": [
+            "D3/Enrollment was 400 students in 2021.: expected contradicted, said insufficient"
+          ]
+        },
+        "abstentions": {
+          "total": 3,
+          "correct": 1,
+          "onUnsupported": 2,
+          "onSupported": 1
+        }
+      },
+      "missesRevised": [
+        {
+          "id": "D3/Enrollment was 320 students in 2021.",
+          "tag": "cross_language",
+          "expected": "supported",
+          "predicted": "insufficient",
+          "reason": "The claim is in en and the passage is in es. This checker compares wording, so it cannot judge support across languages. Read the passage yourself."
+        },
+        {
+          "id": "D3/Enrollment was 400 students in 2021.",
+          "tag": "cross_language",
+          "expected": "contradicted",
+          "predicted": "insufficient",
+          "reason": "The claim is in en and the passage is in es. This checker compares wording, so it cannot judge support across languages. Read the passage yourself."
+        }
+      ]
+    },
+    "unseen": {
+      "baseline": {
+        "claims": 29,
+        "sourceDocuments": 8,
+        "exact": 18,
+        "confusion": {
+          "supported": {
+            "supported": 8,
+            "partial": 1,
+            "contradicted": 1,
+            "insufficient": 3,
+            "unreadable": 0,
+            "claim_not_found": 0
+          },
+          "partial": {
+            "supported": 1,
+            "partial": 2,
+            "contradicted": 1,
+            "insufficient": 1,
+            "unreadable": 0,
+            "claim_not_found": 0
+          },
+          "contradicted": {
+            "supported": 0,
+            "partial": 1,
+            "contradicted": 7,
+            "insufficient": 1,
+            "unreadable": 0,
+            "claim_not_found": 0
+          },
+          "insufficient": {
+            "supported": 0,
+            "partial": 1,
+            "contradicted": 0,
+            "insufficient": 1,
+            "unreadable": 0,
+            "claim_not_found": 0
+          },
+          "unreadable": {
+            "supported": 0,
+            "partial": 0,
+            "contradicted": 0,
+            "insufficient": 0,
+            "unreadable": 0,
+            "claim_not_found": 0
+          }
+        },
+        "genuinelyUnsupported": 16,
+        "unsafeApprovals": {
+          "count": 1,
+          "outOf": 16,
+          "items": [
+            "U5/Capital expenditures will be $15 million"
+          ]
+        },
+        "supportedClaims": 13,
+        "wronglyFlaggedSupported": {
+          "outOf": 13,
+          "total": 5,
+          "calledContradicted": 1,
+          "calledPartial": 1,
+          "abstained": 3,
+          "items": [
+            "U2/El préstamo de libros aumentó un 18%.: contradicted",
+            "U5/Gross margin improved by 1.7 percentage : partial",
+            "U7/Cyclists felt less stressed than drivers: insufficient",
+            "U7/Students in small classes performed bett: insufficient",
+            "U8/45% of surveyed households had broadband: insufficient"
+          ]
+        },
+        "unsupportedButWrongKind": {
+          "outOf": 16,
+          "count": 5,
+          "items": [
+            "U1/Resting heart rate fell by 3 beats per m: expected partial, said contradicted",
+            "U3/ההשתתפות הקבועה גרמה לעלייה בציונים.: expected partial, said insufficient",
+            "U5/Net sales increased because of higher pr: expected insufficient, said partial",
+            "U7/Drivers reported lower stress than cycli: expected contradicted, said partial",
+            "U8/60% of surveyed households had broadband: expected contradicted, said insufficient"
+          ]
+        },
+        "abstentions": {
+          "total": 6,
+          "correct": 1,
+          "onUnsupported": 3,
+          "onSupported": 3
+        }
+      },
+      "revised": {
+        "claims": 29,
+        "sourceDocuments": 8,
+        "exact": 20,
+        "confusion": {
+          "supported": {
+            "supported": 9,
+            "partial": 1,
+            "contradicted": 0,
+            "insufficient": 3,
+            "unreadable": 0,
+            "claim_not_found": 0
+          },
+          "partial": {
+            "supported": 1,
+            "partial": 3,
+            "contradicted": 0,
+            "insufficient": 1,
+            "unreadable": 0,
+            "claim_not_found": 0
+          },
+          "contradicted": {
+            "supported": 0,
+            "partial": 1,
+            "contradicted": 7,
+            "insufficient": 1,
+            "unreadable": 0,
+            "claim_not_found": 0
+          },
+          "insufficient": {
+            "supported": 0,
+            "partial": 1,
+            "contradicted": 0,
+            "insufficient": 1,
+            "unreadable": 0,
+            "claim_not_found": 0
+          },
+          "unreadable": {
+            "supported": 0,
+            "partial": 0,
+            "contradicted": 0,
+            "insufficient": 0,
+            "unreadable": 0,
+            "claim_not_found": 0
+          }
+        },
+        "genuinelyUnsupported": 16,
+        "unsafeApprovals": {
+          "count": 1,
+          "outOf": 16,
+          "items": [
+            "U5/Capital expenditures will be $15 million"
+          ]
+        },
+        "supportedClaims": 13,
+        "wronglyFlaggedSupported": {
+          "outOf": 13,
+          "total": 4,
+          "calledContradicted": 0,
+          "calledPartial": 1,
+          "abstained": 3,
+          "items": [
+            "U5/Gross margin improved by 1.7 percentage : partial",
+            "U7/Cyclists felt less stressed than drivers: insufficient",
+            "U7/Students in small classes performed bett: insufficient",
+            "U8/45% of surveyed households had broadband: insufficient"
+          ]
+        },
+        "unsupportedButWrongKind": {
+          "outOf": 16,
+          "count": 4,
+          "items": [
+            "U3/ההשתתפות הקבועה גרמה לעלייה בציונים.: expected partial, said insufficient",
+            "U5/Net sales increased because of higher pr: expected insufficient, said partial",
+            "U7/Drivers reported lower stress than cycli: expected contradicted, said partial",
+            "U8/60% of surveyed households had broadband: expected contradicted, said insufficient"
+          ]
+        },
+        "abstentions": {
+          "total": 6,
+          "correct": 1,
+          "onUnsupported": 3,
+          "onSupported": 3
+        }
+      },
+      "missesRevised": [
+        {
+          "id": "U3/ההשתתפות הקבועה גרמה לעלייה בציונים.",
+          "tag": "hebrew_causal",
+          "expected": "partial",
+          "predicted": "insufficient",
+          "reason": "No passage shares meaningful vocabulary with this claim."
+        },
+        {
+          "id": "U5/Capital expenditures will be $15 million",
+          "tag": "projection",
+          "expected": "partial",
+          "predicted": "supported",
+          "reason": "Terms, figures and direction match the passage."
+        },
+        {
+          "id": "U5/Gross margin improved by 1.7 percentage ",
+          "tag": "derived_pct",
+          "expected": "supported",
+          "predicted": "partial",
+          "reason": "\"1.7 percentage points\" is derived from 38.1% and 36.4% in the passage."
+        },
+        {
+          "id": "U5/Net sales increased because of higher pr",
+          "tag": "unsupported_cause",
+          "expected": "insufficient",
+          "predicted": "partial",
+          "reason": "\"because of\" asserts causation, but the passage does not describe a design that can establish a cause."
+        },
+        {
+          "id": "U7/Cyclists felt less stressed than drivers",
+          "tag": "paraphrase",
+          "expected": "supported",
+          "predicted": "insufficient",
+          "reason": "No passage shares meaningful vocabulary with this claim."
+        },
+        {
+          "id": "U7/Students in small classes performed bett",
+          "tag": "paraphrase",
+          "expected": "supported",
+          "predicted": "insufficient",
+          "reason": "Only a small part of the claim is covered by the best passage."
+        },
+        {
+          "id": "U7/Drivers reported lower stress than cycli",
+          "tag": "direction",
+          "expected": "contradicted",
+          "predicted": "partial",
+          "reason": "The passage covers about 50% of the claim's terms; the rest is not supported there."
+        },
+        {
+          "id": "U8/45% of surveyed households had broadband",
+          "tag": "cross_language",
+          "expected": "supported",
+          "predicted": "insufficient",
+          "reason": "The claim is in en and the passage is in es. This checker compares wording, so it cannot judge support across languages. Read the passage yourself."
+        },
+        {
+          "id": "U8/60% of surveyed households had broadband",
+          "tag": "cross_language",
+          "expected": "contradicted",
+          "predicted": "insufficient",
+          "reason": "The claim is in en and the passage is in es. This checker compares wording, so it cannot judge support across languages. Read the passage yourself."
+        }
+      ]
+    }
+  },
+  "namedRegressions": [
+    {
+      "id": "h03/averaged 84",
+      "desired": "insufficient",
+      "label": "OCR digit damage (B4 for 84) must not be read as a figure; abstain, do not call it contradicted",
+      "met": true,
+      "baselineStatus": "not met",
+      "currentStatus": "met",
+      "currentPrediction": "insufficient"
+    },
+    {
+      "id": "h07/Lack of sleep",
+      "desired": "partial",
+      "label": "A negation in a different clause must not decide the claim; a causal claim on an association is partial",
+      "met": true,
+      "baselineStatus": "not met",
+      "currentStatus": "met",
+      "currentPrediction": "partial"
+    },
+    {
+      "id": "h08/gained 4 points",
+      "desired": "partial",
+      "label": "A negated significance comment is not a negation of the gain; the claim drops the qualifier, so partial",
+      "met": true,
+      "baselineStatus": "not met",
+      "currentStatus": "met",
+      "currentPrediction": "partial"
+    },
+    {
+      "id": "h04/62% of students",
+      "desired": "supported",
+      "label": "A faithful translation of a Spanish passage should be supported",
+      "met": false,
+      "baselineStatus": "not met",
+      "currentStatus": "not met",
+      "currentPrediction": "insufficient"
+    },
+    {
+      "id": "h05/attended frequently",
+      "desired": "supported",
+      "label": "A true paraphrase with no shared words should be supported",
+      "met": false,
+      "baselineStatus": "not met",
+      "currentStatus": "not met",
+      "currentPrediction": "insufficient"
+    }
+  ]
+}

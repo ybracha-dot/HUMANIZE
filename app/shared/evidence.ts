@@ -2,6 +2,7 @@
 // Baseline before any embeddings or model votes. The verifier can answer "insufficient".
 import { extractNumbers, extractCitations, causalMarker, isAssociational, negations, hasExpectation, QUALIFICATIONS, type NumFact } from './meaning.ts';
 import { findQuote, splitSentences } from './text.ts';
+import { detectLanguage } from './lang.ts';
 
 // ---------------------------------------------------------------------------------------------
 export interface Claim {
@@ -185,11 +186,30 @@ function unitClass(n: NumFact): string {
   return n.unit === 'pp' ? 'percent' : n.unit;
 }
 
-export function verifyClaim(claim: Claim, index: PassageIndex, all: IndexedPassage[]): ClaimVerdict {
+/** Rule sets. 'baseline' is the first-pass verifier, kept byte-for-byte in behaviour so revisions can be compared on identical inputs. */
+export type Rules = 'baseline' | 'revised';
+
+const CLAUSE_SPLIT = /;|,?\s+(?:though|although|but|while|whereas|however|aunque|pero)\s+|\s+[—–]\s+/i;
+/** The clause of a sentence that the claim is actually about (shared vocabulary); negations and figures elsewhere in the sentence do not apply to it. */
+export function bestClause(sentence: string, claimText: string): string {
+  const parts = sentence.split(CLAUSE_SPLIT).map((x) => x.trim()).filter(Boolean);
+  if (parts.length < 2) return sentence;
+  const c = new Set(tokenize(claimText));
+  let best = parts[0]; let score = -1;
+  for (const part of parts) { const n = tokenize(part).filter((t) => c.has(t)).length; if (n > score) { score = n; best = part; } }
+  return best;
+}
+/** Tokens that mix letters and digits (B4, 1O5) are typical OCR damage to a figure. */
+const DAMAGED_FIGURE = /\b(?=[0-9A-Za-z]*\d)(?=[0-9A-Za-z]*[A-Za-z])[0-9A-Za-z]{2,}\b/g;
+function damagedFigures(text: string): string[] { return (text.match(DAMAGED_FIGURE) ?? []).filter((t) => !/^\d+(st|nd|rd|th|s|k|m|bn)$/i.test(t)); }
+
+export function verifyClaim(claim: Claim, index: PassageIndex, all: IndexedPassage[], opts: { rules?: Rules } = {}): ClaimVerdict {
+  const rules = opts.rules ?? 'revised';
+  const revised = rules === 'revised';
   const base = {
     claimId: claim.id,
     claim: claim.text,
-    engine: 'deterministic-baseline/1',
+    engine: revised ? 'deterministic-revised/2' : 'deterministic-baseline/1',
   };
   if (!all.length)
     return {
@@ -227,6 +247,14 @@ export function verifyClaim(claim: Claim, index: PassageIndex, all: IndexedPassa
   const reasons: string[] = [];
   let verdict: Verdict = 'supported';
   const cov = top.coverage;
+  // Revised: a claim and passage in different languages cannot be compared word for word. Abstain rather than judge on figures alone.
+  if (revised) {
+    const lc = detectLanguage(claim.text); const lp = detectLanguage(p.text);
+    if (lc !== 'other' && lp !== 'other' && lc !== lp)
+      return { ...base, verdict: 'insufficient', passageId: p.id, quote: null, reasons: [`The claim is in ${lc} and the passage is in ${lp}. This checker compares wording, so it cannot judge support across languages. Read the passage yourself.`], stale: !!p.stale };
+  }
+  const scope = revised ? bestClause(sent, claim.text) : sent;
+  const damaged = revised ? damagedFigures(scope) : [];
   if (p.unreadable)
     return {
       ...base,
@@ -238,7 +266,7 @@ export function verifyClaim(claim: Claim, index: PassageIndex, all: IndexedPassa
     };
 
   const claimNums = extractNumbers(claim.text);
-  const passNums = extractNumbers(sent);
+  const passNums = extractNumbers(damaged.length ? damaged.reduce((t, d) => t.split(d).join(' '), scope) : scope);
   const passPercents = passNums.filter((n) => n.unit === 'percent');
   for (const cn of claimNums) {
     const same = passNums.find((pn) => Math.abs(pn.value - cn.value) < 1e-9 && unitClass(pn) === unitClass(cn));
@@ -258,6 +286,11 @@ export function verifyClaim(claim: Claim, index: PassageIndex, all: IndexedPassa
         continue;
       }
     }
+    if (damaged.length && cn.unit !== 'year') {
+      if (verdict !== 'contradicted') verdict = 'insufficient';
+      reasons.push(`The source text has a damaged figure (${damaged.map((d) => `"${d}"`).join(', ')}), possibly an OCR error. Check the original page before relying on ${cn.raw}.`);
+      continue;
+    }
     const comparable = passNums.filter((pn) => unitClass(pn) === unitClass(cn));
     if (comparable.length && cov >= 0.4) {
       verdict = 'contradicted';
@@ -268,7 +301,7 @@ export function verifyClaim(claim: Claim, index: PassageIndex, all: IndexedPassa
     }
   }
   // A projection or expectation in the source must not become a plain statement of fact in the claim.
-  if (verdict === 'supported' && hasExpectation(sent) && !hasExpectation(claim.text)) {
+  if (verdict === 'supported' && hasExpectation(scope) && !hasExpectation(claim.text)) {
     verdict = 'partial';
     reasons.push('The passage states an expectation or projection; the claim states it as established fact.');
   }
@@ -284,13 +317,13 @@ export function verifyClaim(claim: Claim, index: PassageIndex, all: IndexedPassa
     }
   }
   const cNeg = negations(claim.text).length > 0;
-  const pNeg = negations(sent).length > 0;
+  const pNeg = negations(scope).length > 0;
   if (cov >= 0.4 && cNeg !== pNeg) {
     verdict = 'contradicted';
     reasons.push(cNeg ? 'The claim negates something the passage states.' : 'The passage negates something the claim states.');
   }
   for (const [a, b] of OPPOSITES) {
-    if (cov >= 0.4 && ((a.test(claim.text) && b.test(sent) && !a.test(sent)) || (b.test(claim.text) && a.test(sent) && !b.test(sent)))) {
+    if (cov >= 0.4 && ((a.test(claim.text) && b.test(scope) && !a.test(scope)) || (b.test(claim.text) && a.test(scope) && !b.test(scope)))) {
       verdict = 'contradicted';
       reasons.push('The claim and the passage point in opposite directions.');
     }
@@ -328,12 +361,12 @@ export function verifyClaim(claim: Claim, index: PassageIndex, all: IndexedPassa
   };
 }
 
-export function verifyParagraph(paragraph: string, passages: IndexedPassage[], idPrefix = 'c'): { claims: Claim[]; verdicts: ClaimVerdict[] } {
+export function verifyParagraph(paragraph: string, passages: IndexedPassage[], idPrefix = 'c', opts: { rules?: Rules } = {}): { claims: Claim[]; verdicts: ClaimVerdict[] } {
   const index = new PassageIndex(passages);
   const claims = splitClaims(paragraph, idPrefix);
   return {
     claims,
-    verdicts: claims.map((c) => verifyClaim(c, index, passages)),
+    verdicts: claims.map((c) => verifyClaim(c, index, passages, opts)),
   };
 }
 

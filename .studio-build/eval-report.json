@@ -1,5 +1,5 @@
 {
-  "generated": "2026-11-21T14:43:01.990Z",
+  "generated": "2026-11-21T14:49:31.596Z",
   "note": "Small synthetic fixture set; these numbers describe these fixtures only and are not a population accuracy claim. The held-out split was not used to tune any rule.",
   "fixtures": {
     "total": 30,
@@ -58,8 +58,8 @@
     },
     "heldout": {
       "claims": 22,
-      "exact": 17,
-      "accuracy": 0.773,
+      "exact": 20,
+      "accuracy": 0.909,
       "perVerdict": {
         "supported": {
           "expected": 15,
@@ -70,29 +70,29 @@
         },
         "partial": {
           "expected": 2,
-          "predicted": 1,
-          "truePositive": 0,
-          "recall": 0,
-          "precision": 0
+          "predicted": 2,
+          "truePositive": 2,
+          "recall": 1,
+          "precision": 1
         },
         "contradicted": {
           "expected": 3,
-          "predicted": 6,
+          "predicted": 3,
           "truePositive": 3,
           "recall": 1,
-          "precision": 0.5
+          "precision": 1
         },
         "insufficient": {
           "expected": 2,
-          "predicted": 2,
-          "truePositive": 1,
-          "recall": 0.5,
+          "predicted": 4,
+          "truePositive": 2,
+          "recall": 1,
           "precision": 0.5
         }
       },
       "unsafeMisses": [],
       "falseAlarms": [
-        "h04: expected supported, said partial",
+        "h04: expected supported, said insufficient",
         "h05: expected supported, said insufficient"
       ],
       "falseAlarmsPer1000Words": 10.3,
@@ -103,15 +103,9 @@
       },
       "misses": [
         {
-          "fixture": "h03",
-          "expected": "insufficient",
-          "predicted": "contradicted",
-          "note": "OCR digit error (B4 for 84): the safe answer is insufficient/unreadable. The verifier instead reports contradicted, citing the other figure (77) in the same sentence. Wrong reason, though not an unsafe pass."
-        },
-        {
           "fixture": "h04",
           "expected": "supported",
-          "predicted": "partial",
+          "predicted": "insufficient",
           "note": "Cross-language support: the lexical baseline matches only the figure and answers partial. It cannot read the Spanish wording. Needs multilingual retrieval."
         },
         {
@@ -119,18 +113,6 @@
           "expected": "supported",
           "predicted": "insufficient",
           "note": "No shared vocabulary: lexical retrieval misses a true paraphrase (insufficient). Embeddings are the candidate fix once measured."
-        },
-        {
-          "fixture": "h07",
-          "expected": "partial",
-          "predicted": "contradicted",
-          "note": "Reports contradicted: the passage negates (\"cannot show\") and the claim does not, and the negation check does not know the negation is about a different clause. A negation-scope limitation."
-        },
-        {
-          "fixture": "h08",
-          "expected": "partial",
-          "predicted": "contradicted",
-          "note": "Reports contradicted for the same negation-scope reason (\"not statistically significant\" negates the difference, not the gain)."
         }
       ]
     }

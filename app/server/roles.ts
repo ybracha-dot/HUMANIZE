@@ -132,7 +132,8 @@ const GOAL: Record<Role, string> = {
   critic_blind: "You are the Independent reviewer, first pass. Read the original paragraphs and sources only. Record each paragraph's principal weakness.",
   critic_check:
     'You are the Independent reviewer, second pass. Inspect each candidate edit against the original and the sources and identify errors it introduces.',
-  evidence_verifier: 'You are the Evidence verifier. For each claim, decide whether the passages support it.',
+  evidence_verifier:
+    'You are the Evidence verifier. CONTEXT.claims lists every claim with its claimId. Return exactly one verdict per claimId, using only those ids. Decide whether the passages support each claim.',
   voice_editor: "You are the Voice editor. Use the writer's profile and samples; edit only the candidate span.",
   repair: 'Repair only the listed failed edits so they pass the stated checks.',
 };

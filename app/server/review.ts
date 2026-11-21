@@ -322,6 +322,7 @@ export async function executeStage(sc: StageCtx): Promise<StageResult> {
         try {
           const r = await callRole(sc, 'verifier', 'evidence_verifier', {
             paragraphs: input.paragraphs,
+            claims: rows.map((x) => ({ claimId: x.claim.id, paragraphId: x.paragraphId, text: x.claim.text })),
             passages,
             locks: input.locks,
           });

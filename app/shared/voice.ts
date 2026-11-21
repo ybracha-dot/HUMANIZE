@@ -9,6 +9,7 @@ import { compareMeaning, protectedSpans, type MeaningReport } from './meaning.ts
 import { cleanUnicode } from './unicode.ts';
 import { splitSentences, splitParagraphs } from './text.ts';
 import { tokenize } from './evidence.ts';
+import { detectLanguage } from './lang.ts';
 
 export const POLICY_VERSION = 'writing-studio-policy/1 (humanizer-rules@a32f244 subset + hygiene@5a62be6 layer-A port)';
 export const POLICY_PROVENANCE = {
@@ -62,17 +63,7 @@ export const FOUNDER_PROFILE: VoiceProfile = {
   notes: 'Concise direct prose; no em dashes.',
 };
 
-export function detectLanguage(text: string): 'en' | 'es' | 'he' | 'other' {
-  if (/[֐-׿]/.test(text) && (text.match(/[֐-׿]/g)?.length ?? 0) > text.length * 0.2) return 'he';
-  const words = text.toLowerCase().match(/\p{L}+/gu) ?? [];
-  const score = (set: string[]) => words.filter((w) => set.includes(w)).length;
-  const en = score(['the', 'and', 'of', 'to', 'is', 'in', 'that', 'was', 'for', 'with', 'are', 'it']);
-  const es = score(['el', 'la', 'los', 'las', 'de', 'que', 'y', 'es', 'en', 'un', 'una', 'por', 'con', 'para', 'mi', 'su']);
-  if (!words.length) return 'other';
-  if (es > en && es >= 2) return 'es';
-  if (en >= 2) return 'en';
-  return 'other';
-}
+export { detectLanguage };
 
 export interface ClarityFlag {
   rule: string;

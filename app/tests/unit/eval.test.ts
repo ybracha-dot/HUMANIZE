@@ -163,7 +163,8 @@ describe('evaluation corpus', () => {
     );
     // Regression pins: the exact miss sets are recorded. A change in either direction must be reviewed, not silently absorbed.
     expect(report.verifier.dev.misses.map((m) => m.fixture)).toEqual([]);
-    expect(report.verifier.heldout.misses.map((m) => m.fixture)).toEqual(['h03', 'h04', 'h05', 'h07', 'h08']);
+    // default rules are the revised ones; the baseline predictions are pinned separately in eval2.test.ts against the frozen file
+    expect(report.verifier.heldout.misses.map((m) => m.fixture)).toEqual(['h04', 'h05']);
     expect(report.verifier.heldout.misses.every((m) => m.note)).toBe(true); // every miss is explained
     expect(report.verifier.dev.unsafeMisses).toEqual([]);
     expect(report.verifier.heldout.unsafeMisses).toEqual([]); // never says "supported" for an unsupported claim in this set
