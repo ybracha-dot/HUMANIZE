@@ -87,7 +87,7 @@ export function negations(text: string): string[] {
   return text.match(NEG)?.map((s) => s.toLowerCase()) ?? [];
 }
 
-const QUALIFICATIONS = [
+export const QUALIFICATIONS = [
   'statistically significant', 'on average', 'in some cases', 'in part', 'partly', 'preliminary', 'self-reported',
   'observational', 'pilot', 'sample', 'at least', 'at most', 'only', 'mostly', 'largely', 'among',
 ];
@@ -140,6 +140,9 @@ export function causalMarker(text: string): string | null {
   const a = text.match(AGENTIVE);
   if (a) return a[0].trim();
   return null;
+}
+export function hasExpectation(text: string): boolean {
+  return HEDGE_CLASSES.find((h) => h.id === 'expectation')!.re.test(text);
 }
 export function isAssociational(text: string): boolean {
   return ASSOC.test(text);

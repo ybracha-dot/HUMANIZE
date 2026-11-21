@@ -1,0 +1,160 @@
+{
+  "generated": "2026-11-21T09:22:22.766Z",
+  "note": "Small synthetic fixture set; these numbers describe these fixtures only and are not a population accuracy claim. The held-out split was not used to tune any rule.",
+  "fixtures": {
+    "total": 30,
+    "dev": 14,
+    "heldout": 16,
+    "languages": [
+      "en",
+      "es",
+      "he"
+    ]
+  },
+  "verifier": {
+    "dev": {
+      "claims": 15,
+      "exact": 15,
+      "accuracy": 1,
+      "perVerdict": {
+        "supported": {
+          "expected": 6,
+          "predicted": 6,
+          "truePositive": 6,
+          "recall": 1,
+          "precision": 1
+        },
+        "partial": {
+          "expected": 3,
+          "predicted": 3,
+          "truePositive": 3,
+          "recall": 1,
+          "precision": 1
+        },
+        "contradicted": {
+          "expected": 5,
+          "predicted": 5,
+          "truePositive": 5,
+          "recall": 1,
+          "precision": 1
+        },
+        "insufficient": {
+          "expected": 1,
+          "predicted": 1,
+          "truePositive": 1,
+          "recall": 1,
+          "precision": 1
+        }
+      },
+      "unsafeMisses": [],
+      "falseAlarms": [],
+      "falseAlarmsPer1000Words": 0,
+      "retrieval": {
+        "withGold": 14,
+        "hitAt1": 14,
+        "hitAt3": 14
+      },
+      "misses": []
+    },
+    "heldout": {
+      "claims": 22,
+      "exact": 17,
+      "accuracy": 0.773,
+      "perVerdict": {
+        "supported": {
+          "expected": 15,
+          "predicted": 13,
+          "truePositive": 13,
+          "recall": 0.867,
+          "precision": 1
+        },
+        "partial": {
+          "expected": 2,
+          "predicted": 1,
+          "truePositive": 0,
+          "recall": 0,
+          "precision": 0
+        },
+        "contradicted": {
+          "expected": 3,
+          "predicted": 6,
+          "truePositive": 3,
+          "recall": 1,
+          "precision": 0.5
+        },
+        "insufficient": {
+          "expected": 2,
+          "predicted": 2,
+          "truePositive": 1,
+          "recall": 0.5,
+          "precision": 0.5
+        }
+      },
+      "unsafeMisses": [],
+      "falseAlarms": [
+        "h04: expected supported, said partial",
+        "h05: expected supported, said insufficient"
+      ],
+      "falseAlarmsPer1000Words": 10.3,
+      "retrieval": {
+        "withGold": 20,
+        "hitAt1": 19,
+        "hitAt3": 19
+      },
+      "misses": [
+        {
+          "fixture": "h03",
+          "expected": "insufficient",
+          "predicted": "contradicted",
+          "note": "OCR digit error (B4 for 84): the safe answer is insufficient/unreadable. The verifier instead reports contradicted, citing the other figure (77) in the same sentence. Wrong reason, though not an unsafe pass."
+        },
+        {
+          "fixture": "h04",
+          "expected": "supported",
+          "predicted": "partial",
+          "note": "Cross-language support: the lexical baseline matches only the figure and answers partial. It cannot read the Spanish wording. Needs multilingual retrieval."
+        },
+        {
+          "fixture": "h05",
+          "expected": "supported",
+          "predicted": "insufficient",
+          "note": "No shared vocabulary: lexical retrieval misses a true paraphrase (insufficient). Embeddings are the candidate fix once measured."
+        },
+        {
+          "fixture": "h07",
+          "expected": "partial",
+          "predicted": "contradicted",
+          "note": "Reports contradicted: the passage negates (\"cannot show\") and the claim does not, and the negation check does not know the negation is about a different clause. A negation-scope limitation."
+        },
+        {
+          "fixture": "h08",
+          "expected": "partial",
+          "predicted": "contradicted",
+          "note": "Reports contradicted for the same negation-scope reason (\"not statistically significant\" negates the difference, not the gain)."
+        }
+      ]
+    }
+  },
+  "meaningDrift": {
+    "dev": {
+      "materialPairs": 6,
+      "materialFlagged": 6,
+      "recall": 1,
+      "missed": [],
+      "cleanPairs": 4,
+      "cleanFlagged": [],
+      "falseAlarmsPer1000Words": 0
+    },
+    "heldout": {
+      "materialPairs": 8,
+      "materialFlagged": 7,
+      "recall": 0.875,
+      "missed": [
+        "h_m07"
+      ],
+      "cleanPairs": 7,
+      "cleanFlagged": [],
+      "falseAlarmsPer1000Words": 0
+    }
+  }
+}

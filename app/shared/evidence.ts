@@ -1,6 +1,6 @@
 // Claim splitting, lexical retrieval (BM25 + phrase boost) and a deterministic evidence verifier.
 // Baseline before any embeddings or model votes. The verifier can answer "insufficient".
-import { extractNumbers, extractCitations, causalMarker, isAssociational, negations, type NumFact } from './meaning.ts';
+import { extractNumbers, extractCitations, causalMarker, isAssociational, negations, hasExpectation, QUALIFICATIONS, type NumFact } from './meaning.ts';
 import { findQuote, splitSentences } from './text.ts';
 
 // ---------------------------------------------------------------------------------------------
@@ -153,18 +153,39 @@ export function verifyClaim(claim: Claim, index: PassageIndex, all: IndexedPassa
   const cov = top.coverage;
   if (p.unreadable) return { ...base, verdict: 'unreadable', passageId: p.id, quote: null, reasons: ['The matching source could not be read.'], stale: !!p.stale };
 
-  const claimNums = extractNumbers(claim.text).filter((n) => n.unit !== 'year');
+  const claimNums = extractNumbers(claim.text);
   const passNums = extractNumbers(sent);
+  const passPercents = passNums.filter((n) => n.unit === 'percent');
   for (const cn of claimNums) {
     const same = passNums.find((pn) => Math.abs(pn.value - cn.value) < 1e-9 && unitClass(pn) === unitClass(cn));
     if (same) continue;
+    // A figure derived from two figures in the passage (a difference in points, or a relative change) is a calculation, not a new fact.
+    if ((cn.unit === 'pp' || cn.unit === 'percent') && passPercents.length >= 2) {
+      const [a, b] = passPercents; const pts = Math.abs(b.value - a.value); const rel = Math.abs(((b.value - a.value) / a.value) * 100);
+      if (Math.abs(cn.value - pts) < 0.051 || Math.abs(cn.value - rel) < 0.06) {
+        if (cn.unit === 'percent' && Math.abs(cn.value - pts) < 0.051) { if (verdict === 'supported') verdict = 'partial'; reasons.push(`"${cn.raw}" is ambiguous: the passage's ${a.raw} to ${b.raw} is ${pts} percentage points and about ${Math.round(rel * 10) / 10}% in relative terms.`); }
+        else reasons.push(`"${cn.raw}" is derived from ${a.raw} and ${b.raw} in the passage.`);
+        continue;
+      }
+    }
     const comparable = passNums.filter((pn) => unitClass(pn) === unitClass(cn));
     if (comparable.length && cov >= 0.4) {
       verdict = 'contradicted';
       reasons.push(`The claim says ${cn.raw} but the passage gives ${comparable.map((c) => c.raw).join(' / ')}.`);
-    } else if (verdict !== 'contradicted') {
+    } else if (verdict !== 'contradicted' && cn.unit !== 'year') {
       verdict = 'insufficient';
       reasons.push(`The figure ${cn.raw} does not appear in the best-matching passage.`);
+    }
+  }
+  // A projection or expectation in the source must not become a plain statement of fact in the claim.
+  if (verdict === 'supported' && hasExpectation(sent) && !hasExpectation(claim.text)) {
+    verdict = 'partial'; reasons.push('The passage states an expectation or projection; the claim states it as established fact.');
+  }
+  // A qualifier such as "statistically significant" or "on average" that the source attaches must survive in the claim.
+  if (verdict === 'supported') {
+    for (const q of QUALIFICATIONS) {
+      if (['only', 'among', 'sample', 'some', 'pilot'].includes(q)) continue;
+      if (new RegExp(`\\b${q}\\b`, 'i').test(sent) && !new RegExp(`\\b${q}\\b`, 'i').test(claim.text)) { verdict = 'partial'; reasons.push(`The passage qualifies this with "${q}"; the claim drops that qualification.`); break; }
     }
   }
   const cNeg = negations(claim.text).length > 0; const pNeg = negations(sent).length > 0;
