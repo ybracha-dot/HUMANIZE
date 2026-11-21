@@ -1,0 +1,271 @@
+{
+ "frozenAtCommit": "181d106eb3aafc76dfeb3597a7144def7b09ea41",
+ "note": "Labels and baseline predictions of the 22 held-out claims inspected in the first pass. Frozen before any rule revision. Do not regenerate.",
+ "claims": [
+  {
+   "id": "h01/62%",
+   "fixture": "h01",
+   "family": "hebrew",
+   "lang": "he",
+   "claimText": "כ-62% מהסטודנטים השתתפו ברוב השיעורים.",
+   "expected": "supported",
+   "baselinePredicted": "supported",
+   "baselineReasons": [
+    "Terms, figures and direction match the passage."
+   ]
+  },
+  {
+   "id": "h02/80%",
+   "fixture": "h02",
+   "family": "hebrew",
+   "lang": "he",
+   "claimText": "כ-80% מהסטודנטים השתתפו ברוב השיעורים.",
+   "expected": "contradicted",
+   "baselinePredicted": "contradicted",
+   "baselineReasons": [
+    "The claim says 80% but the passage gives 62%."
+   ]
+  },
+  {
+   "id": "h03/averaged 84",
+   "fixture": "h03",
+   "family": "ocr_error",
+   "lang": "en",
+   "claimText": "Frequent attendees averaged 84 on the final exam.",
+   "expected": "insufficient",
+   "baselinePredicted": "contradicted",
+   "baselineReasons": [
+    "The claim says 84 but the passage gives 77."
+   ]
+  },
+  {
+   "id": "h04/62% of students",
+   "fixture": "h04",
+   "family": "bilingual",
+   "lang": "en",
+   "claimText": "62% of students attended most classes during the semester.",
+   "expected": "supported",
+   "baselinePredicted": "partial",
+   "baselineReasons": [
+    "The passage covers about 40% of the claim's terms; the rest is not supported there."
+   ]
+  },
+  {
+   "id": "h05/attended frequently",
+   "fixture": "h05",
+   "family": "paraphrase",
+   "lang": "en",
+   "claimText": "Students who attended frequently performed better on the final exam.",
+   "expected": "supported",
+   "baselinePredicted": "insufficient",
+   "baselineReasons": [
+    "No passage shares meaningful vocabulary with this claim."
+   ]
+  },
+  {
+   "id": "h06/tutoring program caused",
+   "fixture": "h06",
+   "family": "causal",
+   "lang": "en",
+   "claimText": "The tutoring program caused the gains in reading scores.",
+   "expected": "supported",
+   "baselinePredicted": "supported",
+   "baselineReasons": [
+    "Terms, figures and direction match the passage."
+   ]
+  },
+  {
+   "id": "h07/Lack of sleep",
+   "fixture": "h07",
+   "family": "causal",
+   "lang": "en",
+   "claimText": "Lack of sleep causes lower reading scores.",
+   "expected": "partial",
+   "baselinePredicted": "contradicted",
+   "baselineReasons": [
+    "The passage negates something the claim states."
+   ]
+  },
+  {
+   "id": "h08/gained 4 points",
+   "fixture": "h08",
+   "family": "stats",
+   "lang": "en",
+   "claimText": "Students in the treatment group gained 4 points.",
+   "expected": "partial",
+   "baselinePredicted": "contradicted",
+   "baselineReasons": [
+    "The passage qualifies this with \"statistically significant\"; the claim drops that qualification.",
+    "The passage negates something the claim states."
+   ]
+  },
+  {
+   "id": "h09/Corn Laws in 1815",
+   "fixture": "h09",
+   "family": "cited_history",
+   "lang": "en",
+   "claimText": "Parliament passed the Corn Laws in 1815 and",
+   "expected": "supported",
+   "baselinePredicted": "supported",
+   "baselineReasons": [
+    "Terms, figures and direction match the passage."
+   ]
+  },
+  {
+   "id": "h10/Corn Laws in 1825",
+   "fixture": "h10",
+   "family": "cited_history",
+   "lang": "en",
+   "claimText": "Parliament passed the Corn Laws in 1825 to protect domestic grain prices (Jones 12).",
+   "expected": "contradicted",
+   "baselinePredicted": "contradicted",
+   "baselineReasons": [
+    "The claim says 1825 but the passage gives 1815 / 12."
+   ]
+  },
+  {
+   "id": "h11/Revenue grew 12%",
+   "fixture": "h11",
+   "family": "finance_memo",
+   "lang": "en",
+   "claimText": "Revenue grew 12% year over year to $48 million.",
+   "expected": "supported",
+   "baselinePredicted": "supported",
+   "baselineReasons": [
+    "Terms, figures and direction match the passage."
+   ]
+  },
+  {
+   "id": "h12/$52 million",
+   "fixture": "h12",
+   "family": "finance_memo",
+   "lang": "en",
+   "claimText": "Revenue grew 12% year over year to $52 million.",
+   "expected": "contradicted",
+   "baselinePredicted": "contradicted",
+   "baselineReasons": [
+    "The claim says $52 million but the passage gives $48 million."
+   ]
+  },
+  {
+   "id": "h13/Revenue grew 12%",
+   "fixture": "h13",
+   "family": "compound",
+   "lang": "en",
+   "claimText": "Revenue grew 12% year over year, and",
+   "expected": "supported",
+   "baselinePredicted": "supported",
+   "baselineReasons": [
+    "Terms, figures and direction match the passage."
+   ]
+  },
+  {
+   "id": "h13/headcount doubled",
+   "fixture": "h13",
+   "family": "compound",
+   "lang": "en",
+   "claimText": "headcount doubled over the same period.",
+   "expected": "insufficient",
+   "baselinePredicted": "insufficient",
+   "baselineReasons": [
+    "No passage shares meaningful vocabulary with this claim."
+   ]
+  },
+  {
+   "id": "h14/averaged 84",
+   "fixture": "h14",
+   "family": "conflicting_sources",
+   "lang": "en",
+   "claimText": "Frequent attendees averaged 84 on the final exam.",
+   "expected": "supported",
+   "baselinePredicted": "supported",
+   "baselineReasons": [
+    "Terms, figures and direction match the passage."
+   ]
+  },
+  {
+   "id": "h15/averaged 84",
+   "fixture": "h15",
+   "family": "duplicate_reading",
+   "lang": "en",
+   "claimText": "Frequent attendees averaged 84 on the final exam.",
+   "expected": "supported",
+   "baselinePredicted": "supported",
+   "baselineReasons": [
+    "Terms, figures and direction match the passage."
+   ]
+  },
+  {
+   "id": "h16/four new libraries",
+   "fixture": "h16",
+   "family": "long_work",
+   "lang": "en",
+   "claimText": "The district opened four new libraries between 2015 and 2019.",
+   "expected": "supported",
+   "baselinePredicted": "supported",
+   "baselineReasons": [
+    "Terms, figures and direction match the passage."
+   ]
+  },
+  {
+   "id": "h16/1.2 million",
+   "fixture": "h16",
+   "family": "long_work",
+   "lang": "en",
+   "claimText": "Circulation rose to 1.2 million items in 2019.",
+   "expected": "supported",
+   "baselinePredicted": "supported",
+   "baselineReasons": [
+    "Terms, figures and direction match the passage."
+   ]
+  },
+  {
+   "id": "h16/nine branches",
+   "fixture": "h16",
+   "family": "long_work",
+   "lang": "en",
+   "claimText": "Weekend hours were extended at nine branches in 2018.",
+   "expected": "supported",
+   "baselinePredicted": "supported",
+   "baselineReasons": [
+    "Terms, figures and direction match the passage."
+   ]
+  },
+  {
+   "id": "h16/640 students",
+   "fixture": "h16",
+   "family": "long_work",
+   "lang": "en",
+   "claimText": "Volunteer tutors served 640 students in the first year.",
+   "expected": "supported",
+   "baselinePredicted": "supported",
+   "baselineReasons": [
+    "Terms, figures and direction match the passage."
+   ]
+  },
+  {
+   "id": "h16/$310,000",
+   "fixture": "h16",
+   "family": "long_work",
+   "lang": "en",
+   "claimText": "The budget for children's programming was $310,000 in 2019.",
+   "expected": "supported",
+   "baselinePredicted": "supported",
+   "baselineReasons": [
+    "Terms, figures and direction match the passage."
+   ]
+  },
+  {
+   "id": "h16/4.6 out of 5",
+   "fixture": "h16",
+   "family": "long_work",
+   "lang": "en",
+   "claimText": "Survey respondents rated the new branches 4.6 out of 5.",
+   "expected": "supported",
+   "baselinePredicted": "supported",
+   "baselineReasons": [
+    "Terms, figures and direction match the passage."
+   ]
+  }
+ ]
+}
