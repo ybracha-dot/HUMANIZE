@@ -1,0 +1,30 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AutoType practice page</title>
+  <link rel="stylesheet" href="practice.css">
+</head>
+<body>
+  <div class="desk">
+    <header>
+      <h1><img class="logo" src="icons/icon128.png" alt="" width="34" height="34"><span>AutoType practice page<span class="caret" aria-hidden="true"></span></span></h1>
+      <p class="welcome" id="welcome" hidden>AutoType is installed. Pin it from the puzzle-piece menu in Chrome's toolbar, then click its icon to open the side panel.</p>
+      <p>Try AutoType here before using it in a real document. Click in the page below, then press <b>Start typing</b> in the side panel. To try the Editor, leave some text here, switch the panel to <b>Editor</b>, and paste a changed version.</p>
+    </header>
+    <label class="sr-only" for="doc">Practice document</label>
+    <textarea id="doc" class="page" spellcheck="false" autofocus placeholder="Click here, then start typing from the side panel."></textarea>
+    <div class="bar">
+      <span id="count">0 words</span>
+      <span class="actions">
+        <button type="button" id="copy">Copy text</button>
+        <button type="button" id="clear">Clear page</button>
+      </span>
+    </div>
+  </div>
+  <script src="docs-reader.js"></script>
+    <script src="shortcuts.js"></script>
+  <script src="practice.js"></script>
+</body>
+</html>

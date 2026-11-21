@@ -1,0 +1,10 @@
+{
+  "name": "autotype",
+  "version": "1.5.0",
+  "private": true,
+  "type": "module",
+  "description": "Chrome extension that types text like a person (rough draft, typos, pauses, revisions) or makes edits to a document in place.",
+  "scripts": {
+    "test": "node tests/fuzz.test.js && node tests/order.test.js && node tests/diff.test.js && node tests/edit-plan.test.js && node tests/docs.test.js && node tests/check.test.js && node --test tests/long-session.test.js tests/worker-recovery.test.js"
+  }
+}

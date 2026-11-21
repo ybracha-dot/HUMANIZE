@@ -1,0 +1,52 @@
+{
+  "manifest_version": 3,
+  "name": "AutoType",
+  "version": "1.5.0",
+  "description": "Types your text like a person, with typos, pauses and revisions. Or makes your edits to a document in place, one change at a time.",
+  "minimum_chrome_version": "116",
+  "permissions": [
+    "sidePanel",
+    "debugger",
+    "storage",
+    "tabs"
+  ],
+  "background": {
+    "service_worker": "background.js",
+    "type": "module"
+  },
+  "content_scripts": [
+    {
+      "matches": [
+        "<all_urls>"
+      ],
+      "js": [
+        "docs-reader.js",
+        "shortcuts.js"
+      ],
+      "all_frames": true,
+      "match_origin_as_fallback": true,
+      "run_at": "document_start"
+    }
+  ],
+  "action": {
+    "default_title": "Open AutoType",
+    "default_icon": {
+      "16": "icons/icon16.png",
+      "32": "icons/icon32.png"
+    }
+  },
+  "icons": {
+    "16": "icons/icon16.png",
+    "32": "icons/icon32.png",
+    "48": "icons/icon48.png",
+    "128": "icons/icon128.png"
+  },
+  "commands": {
+    "start-stop": {
+      "description": "Start or stop typing (optional Chrome-wide shortcut)"
+    },
+    "pause": {
+      "description": "Pause or resume typing (optional Chrome-wide shortcut)"
+    }
+  }
+}

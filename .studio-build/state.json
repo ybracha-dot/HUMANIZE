@@ -1,0 +1,19 @@
+{
+  "status": "working",
+  "milestone": "M3",
+  "evidence": [
+    "M0: app scaffolded (Vite/React/TS/Tailwind, Hono API, node:sqlite); sample assignment fixtures generated; npm run typecheck and npm test pass",
+    "M1: PDF/MD/TXT/DOCX ingest with printed page labels distinct from viewer index; brief items carry exact source quotes and conflicts; unreadable and scanned files fail per file with remedy (integration test passed)",
+    "M2: note -> 2 thesis options -> outline -> reviewable draft; thesis lock refuses revise; persisted and reopened (integration test passed)",
+    "M3 (core): Quick review through durable queue; causal rewrite flagged causal_introduced; precise limitation accepted; double-click yields one revision (integration test passed)"
+  ],
+  "next": "Add atomic/two-tab conflict, isolation, durable-queue kill tests (M6 backend), then UI, StoryScope manifest, extension notes, demo smoke in Chromium.",
+  "blockers": [],
+  "verification": [
+    {
+      "command": "npm run typecheck && npm test",
+      "outcome": "passed",
+      "scope": "fixture mode, 52 tests"
+    }
+  ]
+}

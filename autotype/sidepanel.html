@@ -1,0 +1,192 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>AutoType</title>
+  <link rel="stylesheet" href="sidepanel.css">
+</head>
+<body>
+  <header class="masthead">
+    <div class="row">
+      <h1 class="brand"><img class="logo" src="icons/icon128.png" alt="" width="26" height="26"><span>AutoType<span class="caret" aria-hidden="true"></span></span></h1>
+      <button class="link" id="open-practice" type="button">Practice page</button>
+    </div>
+    <p class="tagline" id="tagline">Types your text like a person: a rough first draft, then revisions until it matches exactly.</p>
+    <div class="tabs" role="tablist" aria-label="Mode">
+      <button type="button" role="tab" id="tab-write" data-view="write" aria-selected="true" aria-controls="main">Writer</button>
+      <button type="button" role="tab" id="tab-edit" data-view="edit" aria-selected="false" aria-controls="main">Editor</button>
+    </div>
+  </header>
+
+  <details class="block" id="recovery" hidden>
+    <summary>Interrupted sessions</summary>
+    <p class="meta">Preview the current editor and the saved target before continuing. Your existing text is read again at start.</p>
+    <select id="recovery-list" aria-label="Saved session"></select>
+    <button type="button" class="link" id="recovery-preview">Review remaining work</button>
+    <div id="recovery-compare" hidden>
+      <label for="recovery-current">Current editor</label>
+      <textarea class="short" id="recovery-current" readonly></textarea>
+      <label for="recovery-target">Saved target</label>
+      <textarea class="short" id="recovery-target" readonly></textarea>
+      <button type="button" class="primary" id="recovery-start" hidden>Resume reviewed changes</button>
+    </div>
+    <p id="recovery-note" class="meta" role="status"></p>
+    <button type="button" class="link" id="recovery-forget">Forget selected recovery record</button>
+  </details>
+  <main id="main">
+    <section class="block" data-view="write" aria-labelledby="source-label">
+      <div class="row">
+        <label id="source-label" class="heading" for="source">Your text</label>
+        <button class="link" id="clear" type="button" hidden>Clear</button>
+      </div>
+      <textarea id="source" spellcheck="false"
+        placeholder="Paste the final version of your text here."></textarea>
+      <p class="meta" id="source-meta">Nothing pasted yet.</p>
+    </section>
+
+    <section class="block" data-view="edit" aria-labelledby="current-label" hidden>
+      <div class="row">
+        <label id="current-label" class="heading" for="current">Current document</label>
+        <span class="row-actions">
+          <button class="link" id="scan" type="button">Scan document</button>
+          <button class="link" id="clear-current" type="button" hidden>Clear</button>
+        </span>
+      </div>
+      <p class="meta pad-lede" id="current-help"></p>
+      <textarea id="current" class="short" spellcheck="false" placeholder="Paste what's in your document now."></textarea>
+      <p class="meta" id="current-meta"></p>
+    </section>
+
+    <section class="block" data-view="edit" aria-labelledby="updated-label" hidden>
+      <div class="row">
+        <label id="updated-label" class="heading" for="updated">Updated version</label>
+        <button class="link" id="clear-updated" type="button" hidden>Clear</button>
+      </div>
+      <p class="meta pad-lede">The version you want your document to become.</p>
+      <textarea id="updated" class="short" spellcheck="false" placeholder="Paste the updated version."></textarea>
+      <p class="meta" id="updated-meta"></p>
+    </section>
+
+    <section class="block" aria-labelledby="pace-label">
+      <div class="row">
+        <h2 id="pace-label" class="heading">Pace</h2>
+        <span class="meta quiet" id="custom-flag" hidden>Custom</span>
+      </div>
+      <div class="presets" role="radiogroup" aria-labelledby="pace-label">
+        <button type="button" role="radio" data-preset="demo" aria-checked="false">Quick demo</button>
+        <button type="button" role="radio" data-preset="natural" aria-checked="false">Natural</button>
+        <button type="button" role="radio" data-preset="slow" aria-checked="false">Slow writer</button>
+      </div>
+      <div id="sliders"></div>
+      <details class="more" id="more">
+        <summary>More settings</summary>
+        <div id="sliders-more"></div>
+        <button class="link limits-link" id="open-limits" type="button">Change slider limits</button>
+      </details>
+    </section>
+
+    <section class="block" data-view="write" aria-labelledby="draft-label">
+      <div class="row">
+        <h2 id="draft-label" class="heading">Rough draft</h2>
+        <button class="link" id="reshuffle" type="button">Reshuffle</button>
+      </div>
+      <p class="meta pad-lede">What it types first. Red marks are the fixes it makes after each paragraph.</p>
+      <div class="pad" id="pad" tabindex="0" aria-label="Rough draft preview"></div>
+      <p class="meta" id="draft-meta"></p>
+    </section>
+
+    <section class="block" data-view="edit" aria-labelledby="changes-label" hidden>
+      <h2 id="changes-label" class="heading">Changes</h2>
+      <p class="meta pad-lede">Your document as it is now. Red marks are the edits it will make, top to bottom. Everything else is left alone.</p>
+      <div class="pad" id="edit-pad" tabindex="0" aria-label="Changes preview"></div>
+      <p class="meta" id="edit-meta"></p>
+    </section>
+
+    <section class="block" aria-labelledby="keys-label">
+      <h2 id="keys-label" class="heading">Keyboard shortcuts</h2>
+      <div class="keys">
+        <div class="key-row">
+          <span id="key-startStop-label">Start or stop</span>
+          <button type="button" class="keycap" id="key-startStop" data-action="startStop" aria-describedby="keys-note"></button>
+        </div>
+        <div class="key-row">
+          <span id="key-pause-label">Pause or resume</span>
+          <button type="button" class="keycap" id="key-pause" data-action="pause" aria-describedby="keys-note"></button>
+        </div>
+      </div>
+      <p class="meta" id="keys-note">Click a shortcut, then press the new keys. They work in any tab while this panel is open.</p>
+    </section>
+  </main>
+
+  <footer class="dock" id="dock">
+    <div id="idle-view">
+      <div class="estimate" id="estimate" hidden>
+        <p class="estimate-total" id="estimate-total"></p>
+        <div class="split" id="split" aria-hidden="true">
+          <span class="seg typing"></span><span class="seg thinking"></span><span class="seg editing"></span>
+        </div>
+        <ul class="legend" id="legend">
+          <li><i class="key typing"></i><span id="legend-typing"></span></li>
+          <li><i class="key thinking"></i><span id="legend-thinking"></span></li>
+          <li><i class="key editing"></i><span id="legend-editing"></span></li>
+        </ul>
+      </div>
+      <button class="primary" id="start" type="button" disabled>Start typing</button>
+      <p class="target" id="target"></p>
+      <p class="tip" id="edit-tip" hidden></p>
+      <p class="tip" id="tip" hidden></p>
+      <p class="error" id="error" role="alert" hidden></p>
+    </div>
+
+    <div id="run-view" hidden>
+      <p class="status" id="status" aria-live="polite"></p>
+      <p class="fixline" id="fixline"></p>
+      <div class="progress" aria-hidden="true"><span id="progress-fill"></span></div>
+      <div class="row run-meta">
+        <span id="time-left"></span>
+        <span id="run-target" class="quiet"></span>
+      </div>
+      <ul class="counters" id="counters">
+        <li><b id="c-typo">0</b> typos fixed</li>
+        <li><b id="c-rethink">0</b> words swapped</li>
+        <li><b id="c-fix">0</b> of <span id="c-fix-total">0</span> <span id="c-fix-word">revisions</span></li>
+      </ul>
+      <div class="buttons">
+        <button type="button" class="secondary" id="pause">Pause</button>
+        <button type="button" class="secondary danger" id="stop">Stop</button>
+      </div>
+      <p class="meta" id="shortcut-hint" hidden></p>
+    </div>
+
+    <div id="result-view" hidden>
+      <h2 class="result-title" id="result-title"></h2>
+      <p id="result-summary"></p>
+      <p class="check" id="result-check" hidden></p>
+      <button class="primary" id="again" type="button">Back to settings</button>
+    </div>
+  </footer>
+
+  <div class="sheet" id="limits-view" role="dialog" aria-modal="true" aria-labelledby="limits-title" hidden>
+    <div class="row sheet-head">
+      <h2 class="heading" id="limits-title" tabindex="-1">Slider limits</h2>
+      <button class="link" id="limits-done" type="button">Done</button>
+    </div>
+    <p class="meta">Set the lowest and highest value each slider can reach. The number boxes follow these limits too.</p>
+    <div id="limits-list"></div>
+    <p class="error" id="limits-error" role="alert" hidden></p>
+    <button class="secondary sheet-reset" id="limits-reset" type="button">Reset all to defaults</button>
+  </div>
+
+  <div class="countdown" id="countdown" hidden>
+    <div class="countdown-inner">
+      <p class="count" id="count" aria-live="assertive"></p>
+      <p class="count-lede">Click in your document where the text should start.</p>
+      <p class="meta">Chrome shows a bar saying AutoType started debugging this browser. That is how it types. The bar goes away when it finishes.</p>
+      <button class="link" id="cancel-countdown" type="button">Cancel</button>
+    </div>
+  </div>
+
+  <script type="module" src="sidepanel.js"></script>
+</body>
+</html>
