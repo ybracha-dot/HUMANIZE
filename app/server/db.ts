@@ -68,6 +68,9 @@ export function openDb(file?: string): DB {
   const db = new DatabaseSync(target);
   db.exec('PRAGMA journal_mode = WAL; PRAGMA busy_timeout = 8000; PRAGMA foreign_keys = OFF; PRAGMA synchronous = NORMAL;');
   db.exec(SCHEMA);
+  // additive migrations for databases created by an earlier version (idempotent)
+  const cols = (db.prepare("PRAGMA table_info('exports')").all() as { name: string }[]).map((x) => x.name);
+  if (!cols.includes('confirmed')) db.exec('ALTER TABLE exports ADD COLUMN confirmed INTEGER NOT NULL DEFAULT 0');
   db.prepare("INSERT OR IGNORE INTO meta(key,value) VALUES('schema_version', ?)").run(String(SCHEMA_VERSION));
   return db;
 }

@@ -142,10 +142,11 @@ export async function exportDocument(
       mime = 'application/pdf';
     }
   }
+  const exportId = uid('exp');
   run(
     c.db,
     'INSERT INTO exports(id,workspace_id,document_id,revision_id,format,text_hash,filename,created_at) VALUES(?,?,?,?,?,?,?,?)',
-    uid('exp'),
+    exportId,
     c.ws,
     docId,
     rev.id,
@@ -159,7 +160,7 @@ export async function exportDocument(
     revisionId: rev.id,
     hash,
   });
-  return { body, filename, mime, hash, revisionId: rev.id };
+  return { body, filename, mime, hash, revisionId: rev.id, exportId };
 }
 
 // ---- process report -----------------------------------------------------------------------------

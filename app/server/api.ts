@@ -27,6 +27,7 @@ import { runSpend, usedUsd } from './spend.ts';
 import { checkNarrative } from '../shared/storyscope.ts';
 import { LIMITS } from './ingest.ts';
 import { deleteSource, mintFileLink, openFileLink, readSourceFile } from './files.ts';
+import { attachLegacy, importMaterials, overview, setUiState, type ImportItem } from './materials.ts';
 
 type Env = { Variables: { ctx: S.Ctx } };
 
@@ -505,6 +506,75 @@ export function buildApi(db: DB = getDb()) {
       rows,
     });
   });
+
+  // ---- assignment shell: one overview, scoped materials, UI state --------------------------------
+  api.get('/assignments/:id/overview', (c) => c.json(overview(X(c), c.req.param('id'))));
+  api.post('/assignments/:id/materials', async (c) => {
+    const x = X(c);
+    const id = c.req.param('id');
+    const items: ImportItem[] = [];
+    if ((c.req.header('content-type') ?? '').includes('multipart/form-data')) {
+      const form = await c.req.parseBody({ all: true });
+      const files = ([] as any[]).concat(form.file ?? []).filter((f) => f && typeof f === 'object' && 'arrayBuffer' in f);
+      const plan = z
+        .array(
+          z.object({
+            kind: z.enum(['syllabus', 'assignment', 'rubric', 'reading']),
+            scope: z.enum(['course', 'assignment']).optional(),
+            title: z.string().max(160).optional(),
+            date: z.string().max(40).optional(),
+          }),
+        )
+        .parse(JSON.parse(String(form.plan ?? '[]')));
+      if (plan.length !== files.length) throw new S.HttpError(422, 'plan_mismatch', 'Every file needs a type.');
+      for (let i = 0; i < files.length; i++) {
+        const f = files[i];
+        items.push({ ...plan[i], filename: f.name, mime: f.type, bytes: Buffer.from(await f.arrayBuffer()) });
+      }
+    } else {
+      const b = z
+        .object({
+          items: z
+            .array(
+              z.object({
+                kind: z.enum(['syllabus', 'assignment', 'rubric', 'reading']),
+                scope: z.enum(['course', 'assignment']).optional(),
+                title: z.string().max(160).optional(),
+                date: z.string().max(40).optional(),
+                text: z.string().min(1).max(2_000_000),
+              }),
+            )
+            .min(1)
+            .max(20),
+        })
+        .parse(await c.req.json());
+      items.push(...b.items);
+    }
+    return c.json({ results: await importMaterials(x, id, items) });
+  });
+  api.post('/assignments/:id/materials/:sourceId/attach', (c) => {
+    attachLegacy(X(c), c.req.param('id'), c.req.param('sourceId'));
+    return c.json({ ok: true });
+  });
+  api.put('/assignments/:id/ui-state', async (c) => {
+    const b = z
+      .object({ resumeStage: z.string().optional(), syllabusSourceId: z.string().nullable().optional(), skipSyllabus: z.boolean().optional() })
+      .parse(await c.req.json());
+    setUiState(X(c), c.req.param('id'), b);
+    return c.json({ ok: true });
+  });
+  api.delete('/assignments/:id/brief/correct', (c) => {
+    S.clearCorrection(X(c), c.req.param('id'), String(c.req.query('kind')), String(c.req.query('key')));
+    return c.json(S.getBrief(X(c), c.req.param('id')));
+  });
+  api.post('/documents/:id/export-confirm', async (c) => {
+    const x = X(c);
+    S.requireWrite(x);
+    const b = z.object({ exportId: z.string() }).parse(await c.req.json());
+    S.getDocumentRow(x, c.req.param('id'));
+    db.prepare('UPDATE exports SET confirmed=1 WHERE id=? AND workspace_id=? AND document_id=?').run(b.exportId, x.ws, c.req.param('id'));
+    return c.json({ ok: true });
+  });
   api.get('/assignments/:id/search', async (c) => c.json(await S.searchPassages(X(c), c.req.param('id'), c.req.query('q') ?? '')));
 
   // ---- assignment: brief, idea, outline, draft ------------------------------------------------
@@ -552,7 +622,7 @@ export function buildApi(db: DB = getDb()) {
       z
         .object({
           kind: z.string(),
-          chosenSourceId: z.string(),
+          chosenSourceId: z.string().nullable(),
           note: z.string().optional(),
         })
         .parse(await c.req.json()),
@@ -906,7 +976,8 @@ export function buildApi(db: DB = getDb()) {
         'content-disposition': `attachment; filename="${r.filename}"`,
         'x-text-hash': r.hash,
         'x-revision-id': r.revisionId,
-        'access-control-expose-headers': 'x-text-hash, x-revision-id, content-disposition',
+        'x-export-id': r.exportId,
+        'access-control-expose-headers': 'x-text-hash, x-revision-id, x-export-id, content-disposition',
       },
     });
   });

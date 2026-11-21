@@ -397,16 +397,34 @@ export function searchPassages(c: Ctx, assignmentId: string, q: string, limit = 
 }
 
 // ---- assignment brief -----------------------------------------------------------------------
-export function runBriefExtraction(c: Ctx, assignmentId: string) {
-  requireWrite(c);
+/**
+ * Sources that may inform THIS assignment's brief. A course-level syllabus is shared. Assignment sheets and rubrics belong to the
+ * assignment they were added to; a legacy course-level sheet/rubric only counts when the course has exactly one assignment, so a sibling
+ * assignment's private rubric never leaks in. Only readable sources count, and when a course has several syllabi the chosen one (or the newest) is used.
+ */
+export function briefSourceRows(c: Ctx, assignmentId: string): Row[] {
   const a = need(own(c.db, 'assignments', assignmentId, c.ws), 'assignment');
-  const sources = all(
+  const chosen = unj<any>(a.state, {}).ui?.syllabusSourceId ?? null;
+  const rows = all(
     c.db,
-    `SELECT s.id, s.title, s.kind, s.doc_date FROM sources s WHERE s.workspace_id=? AND s.course_id=? AND (s.assignment_id IS NULL OR s.assignment_id=?) AND s.kind IN ('syllabus','assignment','rubric') ORDER BY s.ordinal`,
+    `SELECT s.id, s.title, s.kind, s.doc_date, s.assignment_id, s.created_at FROM sources s
+     WHERE s.workspace_id=? AND s.course_id=? AND s.kind IN ('syllabus','assignment','rubric')
+       AND (s.assignment_id = ? OR (s.assignment_id IS NULL AND (s.kind='syllabus' OR (SELECT COUNT(*) FROM assignments x WHERE x.workspace_id=s.workspace_id AND x.course_id=s.course_id)=1)))
+       AND (SELECT status FROM source_versions v WHERE v.id=s.current_version_id AND v.workspace_id=s.workspace_id)='ok'
+     ORDER BY s.ordinal`,
     c.ws,
     a.course_id,
     assignmentId,
   );
+  const shared = rows.filter((r) => r.kind === 'syllabus' && r.assignment_id == null);
+  const keep = shared.length > 1 ? (shared.find((r) => r.id === chosen) ?? [...shared].sort((x, y) => y.created_at - x.created_at)[0]) : shared[0];
+  return rows.filter((r) => !(r.kind === 'syllabus' && r.assignment_id == null) || r.id === keep?.id);
+}
+
+export function runBriefExtraction(c: Ctx, assignmentId: string) {
+  requireWrite(c);
+  need(own(c.db, 'assignments', assignmentId, c.ws), 'assignment');
+  const sources = briefSourceRows(c, assignmentId);
   const bs: BriefSource[] = sources.map((s) => ({
     sourceId: s.id,
     title: s.title,
@@ -478,22 +496,31 @@ export function getBrief(c: Ctx, assignmentId: string, fresh?: ReturnType<typeof
     ...cf,
     resolution: resolutions.find((r) => r.kind === cf.kind) ?? null,
   }));
+  // The requirement that actually governs the paper: the student's chosen source when a conflict was resolved, otherwise the first item.
+  const effective: Record<string, (typeof items)[number] | null> = {};
+  for (const kind of ['word_range', 'page_range', 'citation_style', 'deadline', 'deliverable']) {
+    const ofKind = items.filter((i) => i.kind === kind);
+    const cf = conflicts.find((x) => x.kind === kind);
+    const chosenId = cf?.resolution?.chosen_source_id ?? null;
+    effective[kind] = (chosenId && ofKind.find((i) => i.sourceId === chosenId)) || ofKind[0] || null;
+  }
   return {
     items,
     missing: re.missing,
-    conflicts,
+    conflicts: conflicts.map((cf) => ({ ...cf, decision: cf.resolution?.chosen_source_id ? 'chosen' : cf.resolution ? 'later' : 'open' })),
+    effective,
     corrections: corrections.length,
   };
 }
+
+/** Drop a manual correction so the extracted text applies again. */
+export function clearCorrection(c: Ctx, assignmentId: string, kind: string, key: string) {
+  requireWrite(c);
+  need(own(c.db, 'assignments', assignmentId, c.ws), 'assignment');
+  run(c.db, 'DELETE FROM brief_corrections WHERE workspace_id=? AND assignment_id=? AND kind=? AND key=?', c.ws, assignmentId, kind, key);
+}
 function recompute(c: Ctx, assignmentId: string) {
-  const a = own(c.db, 'assignments', assignmentId, c.ws)!;
-  const sources = all(
-    c.db,
-    `SELECT s.id, s.title, s.kind, s.doc_date FROM sources s WHERE s.workspace_id=? AND s.course_id=? AND (s.assignment_id IS NULL OR s.assignment_id=?) AND s.kind IN ('syllabus','assignment','rubric') ORDER BY s.ordinal`,
-    c.ws,
-    a.course_id,
-    assignmentId,
-  );
+  const sources = briefSourceRows(c, assignmentId);
   return extractBrief(
     sources.map((s) => ({
       sourceId: s.id,
@@ -533,7 +560,7 @@ export function correctBrief(
     input.status ?? 'corrected',
   );
 }
-export function resolveConflict(c: Ctx, assignmentId: string, input: { kind: string; chosenSourceId: string; note?: string }) {
+export function resolveConflict(c: Ctx, assignmentId: string, input: { kind: string; chosenSourceId: string | null; note?: string }) {
   requireWrite(c);
   need(own(c.db, 'assignments', assignmentId, c.ws), 'assignment');
   run(

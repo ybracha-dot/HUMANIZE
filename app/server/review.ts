@@ -194,7 +194,7 @@ export function checkRequirements(paragraphs: Para[], brief: ReturnType<typeof g
   const text = paragraphs.map((p) => p.text).join('\n\n');
   const words = countWords(text);
   const reqs: Requirement[] = [];
-  const len = brief.items.find((i) => i.kind === 'word_range');
+  const len = brief.effective?.word_range ?? brief.items.find((i) => i.kind === 'word_range');
   if (len) {
     let min = (len.data as any)?.min as number | undefined;
     let max = (len.data as any)?.max as number | undefined;
