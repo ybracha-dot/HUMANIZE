@@ -643,6 +643,14 @@ export function buildApi(db: DB = getDb()) {
     const b = z.object({ optionId: z.string(), thesis: z.string().max(1000).optional() }).parse(await c.req.json());
     return c.json(F.chooseThesis(X(c), c.req.param('id'), b.optionId, b.thesis));
   });
+  api.put('/assignments/:id/thesis', async (c) => {
+    const b = z.object({ thesis: z.string().min(3).max(1000), note: z.string().max(5000).optional() }).parse(await c.req.json());
+    const cur = S.getAssignmentState(X(c), c.req.param('id')).idea ?? {};
+    S.setAssignmentState(X(c), c.req.param('id'), {
+      idea: { ...cur, originalNote: cur.originalNote ?? b.note ?? '', thesis: b.thesis.trim(), chosen: cur.chosen ?? 'own', options: cur.options ?? [] },
+    });
+    return c.json({ ok: true });
+  });
   api.post('/assignments/:id/outline', async (c) => c.json(await F.generateOutline(X(c), c.req.param('id'))));
   api.put('/assignments/:id/outline', async (c) => {
     F.saveOutline(X(c), c.req.param('id'), z.object({ items: z.array(z.any()) }).parse(await c.req.json()).items);
@@ -653,14 +661,18 @@ export function buildApi(db: DB = getDb()) {
     const b = z
       .object({
         text: z.string().max(500000).default(''),
+        blank: z.boolean().optional(),
         title: z.string().optional(),
       })
       .parse(await c.req.json());
+    // Never overwrite or duplicate an existing draft (rapid double clicks, a second tab): report it and let the client open it.
+    const existing = one(db, 'SELECT id FROM documents WHERE workspace_id=? AND assignment_id=? ORDER BY created_at LIMIT 1', X(c).ws, c.req.param('id'));
+    if (existing) throw new S.HttpError(409, 'document_exists', 'This assignment already has a draft. Opening it.', { documentId: existing.id });
     return c.json({
       documentId: S.createDocument(X(c), c.req.param('id'), {
         text: b.text,
         title: b.title,
-        cause: 'import',
+        cause: b.blank ? 'blank' : 'import',
       }),
     });
   });

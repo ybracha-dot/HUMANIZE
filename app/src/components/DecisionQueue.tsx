@@ -113,7 +113,7 @@ export function ProposalCard({
         </ul>
       )}
       {p.meaningChange && material.length === 0 && (
-        <p className="mt-2 text-sm text-stone-700 dark:text-stone-300">
+        <p className="mt-2 text-sm text-stone-700">
           <b>What changes:</b> {p.meaningChange}
         </p>
       )}
@@ -173,7 +173,7 @@ export function ProposalCard({
 
 export function ResolvedRow({ p, onUndo }: { p: any; onUndo?: () => void }) {
   return (
-    <li className="flex items-center justify-between gap-2 rounded-md border border-stone-200 px-2 py-1.5 text-sm dark:border-stone-700">
+    <li className="flex items-center justify-between gap-2 rounded-md border border-stone-200 px-2 py-1.5 text-sm">
       <span>
         <b className="capitalize">{p.decision}</b> · {ISSUE[p.issue] ?? p.issue} <ProviderBadge id={p.provider} />
       </span>

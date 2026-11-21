@@ -27,7 +27,7 @@ function bestSentence(text: string, hint: string): { start: number; end: number 
 }
 
 /** Source reader: evidence is highlighted in context, viewer page index and printed page label are shown separately, stale sources stay visible and labelled. */
-export function SourceReader({ target, onBack }: { target: JumpTarget; onBack: () => void }) {
+export function SourceReader({ target, onBack, backLabel = 'Back to draft' }: { target: JumpTarget; onBack: () => void; backLabel?: string }) {
   const p = useAsync(() => get(`/passages/${target.passageId}`), [target.passageId]);
   const src = useAsync(
     async () => (p.data ? get(`/sources/${p.data.source.id}?version=${p.data.source_version_id}`) : null),
@@ -63,7 +63,7 @@ export function SourceReader({ target, onBack }: { target: JumpTarget; onBack: (
   return (
     <div data-testid="source-reader">
       <button className="btn mb-3" onClick={onBack} data-testid="back-to-draft">
-        <ArrowLeft size={14} /> Back to draft
+        <ArrowLeft size={14} /> {backLabel}
       </button>
       <h3 className="text-sm font-semibold">{detail.source.title}</h3>
       <p className="muted mb-2">
@@ -80,8 +80,7 @@ export function SourceReader({ target, onBack }: { target: JumpTarget; onBack: (
       {[...pages.entries()].map(([idx, ps]) => (
         <div key={idx} className="mb-4">
           <div className="label mb-1" data-testid="page-heading">
-            Viewer page {idx}
-            {ps[0].page_label ? ` · printed page ${ps[0].page_label}` : ''}
+            {ps[0].page_label && String(ps[0].page_label) !== String(idx) ? `PDF viewer page ${idx} · printed page ${ps[0].page_label}` : `Page ${idx}`}
           </div>
           {ps.map((x) => (
             <div
@@ -89,7 +88,7 @@ export function SourceReader({ target, onBack }: { target: JumpTarget; onBack: (
               ref={x.id === target.passageId ? hit : undefined}
               className={cx(
                 'mb-2 rounded-md border p-2 text-sm leading-relaxed',
-                x.id === target.passageId ? 'border-amber-400 bg-amber-50/60 dark:bg-amber-900/20' : 'border-transparent',
+                x.id === target.passageId ? 'border-amber-400 bg-amber-50/60' : 'border-transparent',
               )}
               data-passage={x.id}
             >

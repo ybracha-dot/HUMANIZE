@@ -138,8 +138,22 @@ export function overview(c: Ctx, assignmentId: string) {
     exportDone: exportsConfirmed > 0,
   };
   const active = runs.find((r) => ['queued', 'running', 'blocked'].includes(r.status) || r.paused) ?? null;
+  const lastRun = runs.find((r) => r.status === 'done') ?? null;
+  // what actually happened to the suggestions of the last finished review, counted from real decisions
+  let lastOutcome: { applied: number; kept: number; open: number; total: number } | null = null;
+  if (lastRun) {
+    const rows = all(c.db, 'SELECT decision, COUNT(*) n FROM proposals WHERE workspace_id=? AND run_id=? GROUP BY decision', c.ws, lastRun.id);
+    const n = (d: string[]) => rows.filter((r) => d.includes(r.decision)).reduce((a, r) => a + (r.n as number), 0);
+    lastOutcome = {
+      applied: n(['accepted', 'edited']),
+      kept: n(['rejected']),
+      open: n(['pending', 'conflict']),
+      total: rows.reduce((a, r) => a + (r.n as number), 0),
+    };
+  }
   return {
     assignment: { id: a.id, title: a.title, genre: a.genre, courseId: a.course_id },
+    isSample: /^EDU 101: Education Policy \(sample/.test(String(course.name)),
     course: { id: course.id, name: course.name },
     mode: getSettings(c).mode,
     materials: {
@@ -156,7 +170,7 @@ export function overview(c: Ctx, assignmentId: string) {
     brief,
     plan: { idea, outline: state.outline ?? null },
     document,
-    review: { active, last: runs.find((r) => r.status === 'done') ?? null, pending, runs: runs.slice(0, 5) },
+    review: { active, last: lastRun, lastOutcome, pending, runs: runs.slice(0, 5) },
     exports: { confirmed: exportsConfirmed },
     ui: { resume: ui.resume ?? null },
     facts,

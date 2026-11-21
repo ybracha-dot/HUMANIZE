@@ -701,12 +701,14 @@ export function createDocument(c: Ctx, assignmentId: string, input: { title?: st
       clock.now(),
     );
     const words = joinText(final).split(/\s+/).filter(Boolean).length;
-    logEvent(c, docId, input.cause === 'draft' ? 'draft_generated' : 'import', {
-      words,
-      chars: joinText(final).length,
-      source: input.cause ?? 'paste',
-      note: 'Text arrived whole; earlier edits were not observed.',
-    });
+    if (input.cause === 'blank') logEvent(c, docId, 'document_started', { note: 'An empty document was started in the editor.' });
+    else
+      logEvent(c, docId, input.cause === 'draft' ? 'draft_generated' : 'import', {
+        words,
+        chars: joinText(final).length,
+        source: input.cause ?? 'paste',
+        note: 'Text arrived whole; earlier edits were not observed.',
+      });
     return docId;
   });
 }

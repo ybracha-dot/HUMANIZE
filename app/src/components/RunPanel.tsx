@@ -223,7 +223,7 @@ export function RunPanel({
             )}
             {r.error && <p className="mt-1 text-red-800">{r.error}</p>}
             {r.summary && (
-              <div className="mt-1 text-stone-700 dark:text-stone-300">
+              <div className="mt-1 text-stone-700">
                 <p>
                   {r.summary.proposalCount} suggestion(s)
                   {r.summary.overflow ? `, ${r.summary.overflow} more held back` : ''}. <ProviderBadge id={r.summary.providers?.editor} />

@@ -160,7 +160,7 @@ export function BriefPanel({ assignmentId, brief, reload, onJump }: { assignment
       ))}
       {brief.missing.length > 0 && (
         <Section title="Not found">
-          <ul className="list-disc space-y-1 pl-5 text-sm text-stone-700 dark:text-stone-300">
+          <ul className="list-disc space-y-1 pl-5 text-sm text-stone-700">
             {brief.missing.map((m: any, i: number) => (
               <li key={i}>{m.note}</li>
             ))}

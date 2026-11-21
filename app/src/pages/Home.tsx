@@ -58,7 +58,7 @@ export default function Home() {
             loadSample();
           }
         }}
-        className="card mb-6 flex items-center justify-between p-5 hover:bg-stone-50 dark:hover:bg-stone-800/40"
+        className="card mb-6 flex items-center justify-between p-5 hover:bg-stone-50"
         data-testid="first-action"
       >
         <div>
@@ -89,7 +89,7 @@ export default function Home() {
           <ul className="grid gap-2 sm:grid-cols-2">
             {h.assignments.map((a: any) => (
               <li key={a.id}>
-                <Link to={`/assignments/${a.id}`} className="card block p-3 hover:bg-stone-50 dark:hover:bg-stone-800/40" data-testid="assignment-link">
+                <Link to={`/assignments/${a.id}`} className="card block p-3 hover:bg-stone-50" data-testid="assignment-link">
                   <div className="font-medium">{a.title}</div>
                   <div className="muted">
                     {a.course_name}
@@ -109,7 +109,7 @@ export default function Home() {
         <ul className="mb-3 grid gap-2 sm:grid-cols-2">
           {h.courses.map((c: any) => (
             <li key={c.id}>
-              <Link className="card block p-3 hover:bg-stone-50 dark:hover:bg-stone-800/40" to={`/courses/${c.id}`}>
+              <Link className="card block p-3 hover:bg-stone-50" to={`/courses/${c.id}`}>
                 {c.name}
               </Link>
             </li>

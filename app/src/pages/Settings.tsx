@@ -231,7 +231,7 @@ export default function Settings() {
             Suggest a profile from my samples
           </button>
           {suggest?.stats && (
-            <div className="rounded-md border border-stone-200 p-3 dark:border-stone-700">
+            <div className="rounded-md border border-stone-200 p-3">
               <p>
                 Samples average {suggest.stats.avgSentenceWords} words per sentence; em-dash rate {suggest.stats.emDashRate}.
               </p>

@@ -24,6 +24,8 @@
     "taxonomy": "tsx scripts/build-taxonomy-manifest.ts"
   },
   "dependencies": {
+    "@fontsource/dm-sans": "^5.3.0",
+    "@fontsource/spectral": "^5.3.0",
     "@hono/node-server": "^2.1.11",
     "@radix-ui/react-dialog": "^1.3.1",
     "@radix-ui/react-tabs": "^1.2.1",

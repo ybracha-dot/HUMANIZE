@@ -36,10 +36,7 @@ export function ExportModal({ documentId, assignmentId, open, onClose }: { docum
             Revision <code>{d.revisionId}</code> · {d.words} words · {d.paragraphs} paragraphs · hash{' '}
             <code data-testid="export-hash">{d.hash.slice(0, 16)}…</code>
           </p>
-          <div
-            className="max-h-56 overflow-auto whitespace-pre-wrap rounded-md border border-stone-200 p-3 font-serif dark:border-stone-700"
-            data-testid="export-text"
-          >
+          <div className="max-h-56 overflow-auto whitespace-pre-wrap rounded-md border border-stone-200 p-3 font-serif" data-testid="export-text">
             {d.text}
           </div>
           <p>
@@ -53,7 +50,7 @@ export function ExportModal({ documentId, assignmentId, open, onClose }: { docum
           )}
           {d.staleEvidence > 0 && <p className="text-amber-900">{d.staleEvidence} claim(s) rely on a source that has since been replaced.</p>}
           {d.assistanceRequirement.length > 0 && (
-            <div className="rounded-md border border-stone-200 p-2 dark:border-stone-700">
+            <div className="rounded-md border border-stone-200 p-2">
               <b>Assistance, as your assignment states it:</b>
               <ul className="list-disc pl-5">
                 {d.assistanceRequirement.map((a: string, i: number) => (

@@ -85,7 +85,7 @@ export default function Course() {
         <ul className="mb-2 space-y-2">
           {d.assignments.map((a: any) => (
             <li key={a.id}>
-              <Link to={`/assignments/${a.id}`} className="card block p-3 hover:bg-stone-50 dark:hover:bg-stone-800/40">
+              <Link to={`/assignments/${a.id}`} className="card block p-3 hover:bg-stone-50">
                 {a.title}
               </Link>
             </li>
