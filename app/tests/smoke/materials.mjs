@@ -25,9 +25,6 @@ try {
     else assert.match(await page.getByTestId('step-summary').innerText(), /Step 1 of 5\s*·\s*Materials/);
     await shot(page, `new-materials-${name}`);
     // skip the syllabus and paste instructions without leaving this page
-    await page.getByTestId('skip-syllabus').click();
-    await page.getByTestId('intake-paste-toggle').nth(0).waitFor();
-    await page.locator('[data-testid="intake-paste-toggle"]:visible').first().click();
     await page.getByTestId('intake-paste').fill(SHEET);
     await page.getByTestId('intake-paste-submit').click();
     await page.getByTestId('brief-view').waitFor();
@@ -40,7 +37,7 @@ try {
     assert.equal(await page.getByTestId('primary-action').innerText(), 'Start my plan');
     await shot(page, `new-brief-${name}`);
     assert.deepEqual(errors, [], 'no browser errors');
-    log(`${name}: cold start -> skip syllabus -> pasted instructions -> brief with length, due date, citation, 3 criteria`);
+    log(`${name}: cold start -> pasted (no clicks before the paste box) instructions -> brief with length, due date, citation, 3 criteria`);
   }
 
   // ---------------------------------------------------------------- 2. attendance sample

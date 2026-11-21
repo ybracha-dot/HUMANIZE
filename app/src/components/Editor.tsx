@@ -110,6 +110,7 @@ export const Editor = forwardRef<EditorHandle, Props>(function Editor({ revision
   marksRef.current = marks;
   const metrics = useRef<Metrics>({ inserted: 0, deleted: 0, activeMs: 0 });
   const last = useRef(0);
+  const resetting = useRef(false); // loading a revision is not typing
   const dirty = useRef(onDirty);
   dirty.current = onDirty;
   const paste = useRef(onPaste);
@@ -160,6 +161,7 @@ export const Editor = forwardRef<EditorHandle, Props>(function Editor({ revision
     },
     onTransaction: ({ transaction: tr }) => {
       if (!tr.docChanged) return;
+      if (resetting.current) return;
       const now = Date.now();
       if (last.current) metrics.current.activeMs += Math.min(now - last.current, 5000);
       last.current = now;
@@ -177,12 +179,12 @@ export const Editor = forwardRef<EditorHandle, Props>(function Editor({ revision
   // Load a new revision (accept, restore, switch branch) without treating it as typing.
   useEffect(() => {
     if (!editor) return;
-    editor.commands.command(({ tr, dispatch }) => {
-      tr.setMeta('studioReset', true);
-      dispatch?.(tr);
-      return true;
-    });
-    editor.commands.setContent(toDoc(paragraphs.length ? paragraphs : [{ id: newId(), text: '' }]), false);
+    resetting.current = true;
+    try {
+      editor.commands.setContent(toDoc(paragraphs.length ? paragraphs : [{ id: newId(), text: '' }]), false);
+    } finally {
+      resetting.current = false;
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [editor, revisionId]);
 

@@ -56,6 +56,14 @@ export default function Assignment() {
     await ov.reload();
   }, [ov.reload]);
 
+  // The tab and the screen reader both announce where you are: "Draft · Paper one · Writing Studio".
+  useEffect(() => {
+    document.title = o && current ? `${STAGE_LABEL[current]} · ${o.assignment.title} · Writing Studio` : 'Writing Studio';
+    return () => {
+      document.title = 'Writing Studio';
+    };
+  }, [o?.assignment.title, current]); // eslint-disable-line react-hooks/exhaustive-deps
+
   // remember where the student was (separately from what is complete)
   useEffect(() => {
     if (!o || !current || !isStage(stageParam)) return;
@@ -100,9 +108,14 @@ export default function Assignment() {
     return (
       <div className="mx-auto max-w-desk p-8">
         <ErrorNote error={ov.error} />
-        <Link className="link" to="/">
-          Back to home
-        </Link>
+        <div className="mt-4 flex gap-4">
+          <button className="btn btn-primary" onClick={() => void ov.reload()} data-testid="retry-load">
+            Try again
+          </button>
+          <Link className="link self-center" to="/">
+            Back to home
+          </Link>
+        </div>
       </div>
     );
   if (!o || !current || !shell) return null;
@@ -153,6 +166,14 @@ export default function Assignment() {
         <div className="md:sticky md:top-0 md:z-30">
           <Stepper current={current} facts={o.facts} onGo={go} />
         </div>
+        {!!ov.error && (
+          <p role="alert" className="border-b border-warn bg-surface px-4 py-2 text-center text-sm text-warn" data-testid="offline-banner">
+            Can’t reach the app right now. What is on this page is still here.{' '}
+            <button className="link" onClick={() => void ov.reload()}>
+              Try again
+            </button>
+          </p>
+        )}
         <main
           id="stage"
           tabIndex={-1}

@@ -1,4 +1,4 @@
-import { useRef, useState } from 'react';
+import { useId, useRef, useState } from 'react';
 import { FileText, Upload, X } from 'lucide-react';
 import { suggestType, type FileType } from '@shared/stages';
 import { post, upload } from '@/lib/api';
@@ -31,6 +31,7 @@ export function Intake({
   pasteLabel,
   onDone,
   allowedKinds,
+  pasteOpen,
 }: {
   assignmentId: string;
   defaultKind: Kind | null;
@@ -38,9 +39,12 @@ export function Intake({
   pasteLabel: string;
   onDone: () => void;
   allowedKinds?: Kind[];
+  /** show the paste box straight away (the first thing a student with the instructions in hand wants) */
+  pasteOpen?: boolean;
 }) {
+  const uid = useId();
   const [entries, setEntries] = useState<Entry[]>([]);
-  const [pasting, setPasting] = useState(false);
+  const [pasting, setPasting] = useState(!!pasteOpen);
   const [text, setText] = useState('');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<unknown>(null);
@@ -124,9 +128,11 @@ export function Intake({
           <button className="btn btn-primary" onClick={() => input.current?.click()} data-testid="intake-choose">
             <Upload size={16} aria-hidden /> {label}
           </button>
-          <button className="link text-sm" onClick={() => setPasting((v) => !v)} aria-expanded={pasting} data-testid="intake-paste-toggle">
-            {pasteLabel}
-          </button>
+          {!pasteOpen && (
+            <button className="link text-sm" onClick={() => setPasting((v) => !v)} aria-expanded={pasting} data-testid="intake-paste-toggle">
+              {pasteLabel}
+            </button>
+          )}
           <input
             ref={input}
             type="file"
@@ -144,16 +150,10 @@ export function Intake({
         <p className="muted mt-2">PDF, Word, text or Markdown. Choose several files at once, or drop them here.</p>
         {pasting && (
           <div className="mt-3">
-            <label className="label" htmlFor={`paste-${defaultKind}`}>
-              Paste the text
+            <label className="label" htmlFor={`paste-${uid}`}>
+              {pasteOpen ? 'Paste the assignment instructions' : 'Paste the text'}
             </label>
-            <textarea
-              id={`paste-${defaultKind}`}
-              className="input mt-1 min-h-32"
-              value={text}
-              onChange={(e) => setText(e.target.value)}
-              data-testid="intake-paste"
-            />
+            <textarea id={`paste-${uid}`} className="input mt-1 min-h-32" value={text} onChange={(e) => setText(e.target.value)} data-testid="intake-paste" />
             <button className="btn btn-primary mt-2" disabled={!text.trim() || busy} onClick={addPaste} data-testid="intake-paste-submit">
               {defaultKind === 'assignment' ? 'Create my brief' : 'Add this text'}
             </button>

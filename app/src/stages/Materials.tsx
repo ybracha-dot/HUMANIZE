@@ -165,8 +165,7 @@ export default function Materials() {
   const [draftText, setDraftText] = useState('');
   const [busy, setBusy] = useState(false);
   const [err, setErr] = useState<unknown>(null);
-  const firstOpen: Row = !hasInstr && !m.syllabi.some((s: any) => s.counted) && !m.syllabusSkipped ? 'syllabus' : 'instructions';
-  const [open, setOpen] = useState<Row | null>(hasInstr ? null : firstOpen);
+  const [open, setOpen] = useState<Row | null>(null);
   const chooserRef = useRef<HTMLDivElement>(null);
   useEffect(() => {
     if (chooser) chooserRef.current?.scrollIntoView({ block: 'center' });
@@ -251,6 +250,27 @@ export default function Materials() {
         </div>
       )}
 
+      {!hasInstr && (
+        <section className="mt-6" aria-label="Add what your instructor gave you" data-testid="cold-start">
+          <p className="max-w-measure text-lg">
+            Paste or drop whatever your instructor gave you. You will see what is being asked, and where each requirement came from, right here.
+          </p>
+          <div className="mt-4">
+            <Intake
+              assignmentId={o.assignment.id}
+              defaultKind="assignment"
+              label="Choose files"
+              pasteLabel="Paste the instructions instead"
+              pasteOpen
+              onDone={async () => {
+                await reload();
+                announce('Your assignment brief is ready.');
+              }}
+            />
+          </div>
+        </section>
+      )}
+
       {hasInstr && (
         <div className="mt-6">
           <BriefView conflictOpen={!!cf} onChooseConflict={() => setChooser(true)} />
@@ -285,7 +305,7 @@ export default function Materials() {
       )}
 
       <section className={hasInstr ? 'mt-10' : 'mt-8'} aria-label="Materials">
-        {hasInstr && <h2 className="title text-2xl">Materials</h2>}
+        <h2 className="title text-2xl">{hasInstr ? 'Materials' : 'Or add things one at a time'}</h2>
         <ol className="mt-3 border-b border-rule">
           <RowShell
             n={1}
@@ -293,7 +313,7 @@ export default function Materials() {
             done={!!syl || m.syllabusSkipped}
             open={open === 'syllabus'}
             onToggle={() => toggle('syllabus')}
-            summary={syl ? `${syl.origin}: ${syl.filename ?? syl.title}` : m.syllabusSkipped ? 'Skipped for now' : 'Not added yet'}
+            summary={syl ? `${syl.origin}: ${syl.filename ?? syl.title}` : m.syllabusSkipped ? 'Skipped for now' : 'Optional. Add it if you have it.'}
           >
             <p className="max-w-measure">Add the syllabus you use for this course. It is saved to the course once, and other papers reuse it.</p>
             {m.syllabi.length > 0 && (

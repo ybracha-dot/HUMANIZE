@@ -24,7 +24,6 @@ try {
     await page.getByTestId('start-course-name').fill('HIS 200');
     await page.getByTestId('start-go').click();
     await page.waitForURL(/\/assignments\/[^/]+\/materials$/);
-    await page.getByTestId('skip-syllabus').click();
     await page.goto(`${studio.base}/`);
     await page.getByTestId('first-action').waitFor();
     assert.match(await page.getByTestId('first-action').innerText(), /Home journey paper/);
@@ -62,6 +61,9 @@ try {
     await page.waitForURL(/\/draft$/);
     await page.locator('.ProseMirror p').first().waitFor();
     assert.equal(await page.locator('.ProseMirror p').count(), 2);
+    await page.waitForTimeout(3500); // longer than the autosave delay: merely opening a draft must not mark it changed or write anything
+    assert.equal(await page.getByTestId('save-state').innerText(), 'Saved');
+    assert.equal((await studio.api('GET', `/documents/${(await studio.api('GET', `/assignments/${id}/overview`)).document.id}/history`)).revisions.length, 1, 'opening wrote no new version');
     assert.match(await page.getByTestId('word-count').innerText(), /^13 words$/);
     assert.equal((await studio.api('GET', `/assignments/${id}/spend`)).calls, 0, 'no model call for a pasted draft');
     assert.equal((await studio.api('GET', `/assignments/${id}/overview`)).facts.hasDraft, true);
@@ -80,7 +82,6 @@ try {
     const { page, errors } = await studio.newPage(DESKTOP);
     allErrors.push(errors);
     await page.goto(`${studio.base}/assignments/${id}/materials`);
-    await page.getByTestId('skip-syllabus').click();
     await page.getByTestId('row-readings').getByRole('button').first().click();
     await page.getByTestId('row-readings').getByTestId('intake-file-input').setInputFiles([good, bad]);
     await page.getByTestId('intake-entry').nth(1).waitFor();
@@ -172,7 +173,41 @@ try {
     log('320px and 640px (200% zoom equivalent): Materials, Plan, Draft never scroll sideways, even with a very long word');
   }
 
-  const real = allErrors.flat().filter((e) => !/favicon/i.test(e) && !/status of (409|422)/.test(e));
+  // ---- G · the network drops while writing: the page says so, keeps the text locally, saves with Ctrl+S once back, and a reload offers the text back
+  {
+    const id = await mkAsg('Offline');
+    await studio.api('POST', `/assignments/${id}/document`, { text: 'First paragraph stays.\n\nSecond paragraph.' });
+    const { page, errors } = await studio.newPage(DESKTOP);
+    allErrors.push(errors);
+    await page.goto(`${studio.base}/assignments/${id}/draft`);
+    await page.locator('.ProseMirror p').first().waitFor();
+    await page.route('**/revisions', (r) => r.abort());
+    await page.locator('.ProseMirror p').nth(1).click();
+    await page.keyboard.press('End');
+    await page.keyboard.type(' Typed while offline.');
+    await page.getByTestId('save-state').filter({ hasText: /Not saved/ }).waitFor({ timeout: 15000 });
+    assert.ok((await page.locator('.ProseMirror').innerText()).includes('Typed while offline.'), 'text stays on the page');
+    await page.unroute('**/revisions');
+    await page.keyboard.press('Control+s');
+    await page.getByTestId('save-state').filter({ hasText: /^Saved$/ }).waitFor();
+    const head = await studio.api('GET', `/documents/${(await studio.api('GET', `/assignments/${id}/overview`)).document.id}`);
+    assert.ok(head.revision.paragraphs.some((p) => p.text.includes('Typed while offline.')), 'Ctrl+S saved it to the server: ' + JSON.stringify(head.revision.paragraphs.map((p) => p.text)));
+    // and a reload before it was ever saved offers the text back
+    await page.route('**/revisions', (r) => r.abort());
+    await page.locator('.ProseMirror p').first().click();
+    await page.keyboard.press('End');
+    await page.keyboard.type(' Unsaved before reload.');
+    await page.waitForTimeout(300);
+    await page.unroute('**/revisions');
+    page.on('dialog', (d) => d.accept()); // the browser's "leave site?" prompt: the student chooses to leave
+    await page.reload({ waitUntil: 'domcontentloaded' }).catch(() => {});
+    await page.getByTestId('recover-banner').waitFor({ timeout: 15000 });
+    await page.getByTestId('recover-restore').click();
+    await page.waitForFunction(() => document.querySelector('.ProseMirror')?.textContent?.includes('Unsaved before reload.'));
+    log('offline: unsaved state is stated, text kept, Ctrl+S saves when back, a reload offers the unsaved text back and restores it');
+  }
+
+  const real = allErrors.flat().filter((e) => !/favicon/i.test(e) && !/status of (409|422)/.test(e) && !/net::ERR_FAILED/.test(e)); // deliberate: the offline journey aborts saves
   assert.deepEqual(real, [], 'browser console/page errors: ' + real.join(' | '));
   void PHONE;
   log('PASS checks journey');

@@ -1,5 +1,6 @@
 import { useEffect, useState } from 'react';
 import { Download } from 'lucide-react';
+import { Link } from 'react-router-dom';
 import { download, get, post, put } from '@/lib/api';
 import { useShell, plural } from '@/lib/shell';
 import { ErrorNote, Spinner, useAsync } from '@/lib/ui';
@@ -158,9 +159,15 @@ export default function Export() {
       </section>
       {empty && <p className="mt-2 text-sm text-ink2">Write something in Draft first.</p>}
       {done && (
-        <p role="status" className="mt-4 text-ok" data-testid="export-done">
-          Downloaded {done.name}.
-        </p>
+        <div role="status" className="mt-4" data-testid="export-done">
+          <p className="text-ok">Downloaded {done.name}.</p>
+          <p className="mt-1 text-sm text-ink2">
+            That is the version above. If you change your draft later, come back here and download again.{' '}
+            <Link className="link" to="/" data-testid="export-home">
+              Back to your papers
+            </Link>
+          </p>
+        </div>
       )}
 
       <details className="mt-8 text-sm">

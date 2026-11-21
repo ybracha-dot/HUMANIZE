@@ -128,6 +128,18 @@ export default function Draft() {
       if (timer.current) clearTimeout(timer.current);
     };
   }, [setLeaveGuard]);
+  // Ctrl/Cmd+S saves now (and stops the browser's own "save page" dialog).
+  useEffect(() => {
+    const h = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && !e.altKey && e.key.toLowerCase() === 's') {
+        e.preventDefault();
+        if (timer.current) clearTimeout(timer.current);
+        void saveRef.current('Saved version').then((ok) => ok && announce('Saved.'));
+      }
+    };
+    window.addEventListener('keydown', h);
+    return () => window.removeEventListener('keydown', h);
+  }, [announce]);
   useEffect(() => {
     const h = (e: BeforeUnloadEvent) => {
       if (dirtyRef.current) e.preventDefault();

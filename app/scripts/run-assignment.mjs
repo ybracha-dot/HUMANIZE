@@ -91,8 +91,7 @@ try {
   const asgId = page.url().split('/')[4];
 
   // ---- Materials: the assignment sheet and a 3-page PDF reading, then the brief -------------------
-  await page.getByTestId('skip-syllabus').click();
-  await page.getByTestId('row-assignment').getByTestId('intake-file-input').setInputFiles(path.join(root, 'fixtures/fresh', 'assignment.md'));
+  await page.getByTestId('cold-start').getByTestId('intake-file-input').setInputFiles(path.join(root, 'fixtures/fresh', 'assignment.md'));
   await page.getByTestId('intake-import').click();
   await page.getByTestId('brief-view').waitFor();
   const briefText = (await page.getByTestId('brief-view').innerText()).replace(/\s+/g, ' ');
