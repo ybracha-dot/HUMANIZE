@@ -10,6 +10,7 @@ process.chdir(root);
 const dev = process.argv.includes('--dev');
 const tsx = path.join(root, 'node_modules', '.bin', 'tsx');
 const kids = [];
+process.env.STUDIO_LOCAL_MODE ??= '1'; // personal install: one device-owner workspace, bound to 127.0.0.1
 const run = (name, cmd, args, env = {}) => {
   const p = spawn(cmd, args, { stdio: 'inherit', env: { ...process.env, ...env } });
   p.on('exit', (code) => { if (!shuttingDown) { console.log(`[${name}] exited (${code}); stopping`); shutdown(code ?? 1); } });

@@ -1,6 +1,9 @@
 import { Hono } from 'hono';
+import fs from 'node:fs';
+import path from 'node:path';
+import crypto from 'node:crypto';
 import { ZodError, z } from 'zod';
-import { all, getDb, j, one, own, unj, uid, clock, type DB } from './db.ts';
+import { all, getDb, j, one, own, unj, uid, clock, DATA_DIR, type DB } from './db.ts';
 import * as S from './store.ts';
 import * as J from './jobs.ts';
 import * as F from './flows.ts';
@@ -32,6 +35,15 @@ export function buildApi(db: DB = getDb()) {
   api.get('/health', (c) => c.json({ ok: true, time: clock.now() }));
   api.post('/session', async (c) => {
     const body = await c.req.json().catch(() => ({}));
+    // Personal local install (STUDIO_LOCAL_MODE=1, bound to loopback): one device-owner workspace shared by every browser on this machine.
+    if (process.env.STUDIO_LOCAL_MODE === '1' && body.local) {
+      const file = path.join(DATA_DIR, 'local-token');
+      let token = fs.existsSync(file) ? fs.readFileSync(file, 'utf8').trim() : '';
+      if (!token) { token = 'st_' + crypto.randomBytes(24).toString('hex'); fs.mkdirSync(DATA_DIR, { recursive: true, mode: 0o700 }); fs.writeFileSync(file, token, { mode: 0o600 }); }
+      const ctx = S.resolveToken(db, token);
+      if (ctx) return c.json({ token, userId: ctx.userId, workspaceId: ctx.ws });
+      return c.json(S.createUser(db, 'Me', token));
+    }
     const u = S.createUser(db, typeof body.name === 'string' ? body.name.slice(0, 60) : 'Writer');
     return c.json(u);
   });

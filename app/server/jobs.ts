@@ -168,7 +168,10 @@ export function settleCancel(db: DB, claim: StageClaim) {
 export function getRun(c: Ctx, runId: string) {
   const r = need(own(c.db, 'runs', runId, c.ws));
   const stages = all(c.db, "SELECT id, name, ord, status, attempts, block_reason, error, heartbeat_at, lease_expires_at, finished_at FROM run_stages WHERE run_id=? AND workspace_id=? ORDER BY ord", runId, c.ws);
-  return { id: r.id, documentId: r.document_id, mode: r.mode, status: r.status, baseRevision: r.base_revision, paused: !!r.paused, cancelRequested: !!r.cancel_requested, estimate: unj(r.estimate, null), summary: unj(r.summary, null), error: r.error, createdAt: r.created_at, finishedAt: r.finished_at, stages };
+  // a first pass that has committed is shown immediately, labelled unverified, while later stages are still running
+  const first = r.status !== 'done' ? (stageOutput(c.db, runId, 'argument_edit') ?? stageOutput(c.db, runId, 'edit_unsupported')) : null;
+  const preliminary = first?.proposals ? { count: (first.proposals as unknown[]).length, provider: first.provider ?? null } : null;
+  return { preliminary, id: r.id, documentId: r.document_id, mode: r.mode, status: r.status, baseRevision: r.base_revision, paused: !!r.paused, cancelRequested: !!r.cancel_requested, estimate: unj(r.estimate, null), summary: unj(r.summary, null), error: r.error, createdAt: r.created_at, finishedAt: r.finished_at, stages };
 }
 export function listRuns(c: Ctx, docId?: string, limit = 20) {
   const rows = docId

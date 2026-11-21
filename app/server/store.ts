@@ -16,8 +16,8 @@ export function requireWrite(c: Ctx) { if (!canWrite(c)) throw new HttpError(403
 function need<T>(v: T | undefined, what: string): T { if (v === undefined || v === null) throw new HttpError(404, 'not_found', `${what} not found`); return v; }
 
 // ---- users and workspaces -------------------------------------------------------------------
-export function createUser(db: DB, name = 'Writer'): { userId: string; workspaceId: string; token: string } {
-  const token = 'st_' + sha256(uid('tok') + Math.random() + clock.now()).slice(0, 40);
+export function createUser(db: DB, name = 'Writer', fixedToken?: string): { userId: string; workspaceId: string; token: string } {
+  const token = fixedToken ?? 'st_' + sha256(uid('tok') + Math.random() + clock.now()).slice(0, 40);
   const userId = uid('usr'); const workspaceId = uid('ws');
   tx(db, () => {
     run(db, 'INSERT INTO users(id,name,token_hash,created_at) VALUES(?,?,?,?)', userId, name, sha256(token), clock.now());
