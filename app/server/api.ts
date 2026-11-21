@@ -26,6 +26,7 @@ import { auditUnicode } from '../shared/unicode.ts';
 import { runSpend, usedUsd } from './spend.ts';
 import { checkNarrative } from '../shared/storyscope.ts';
 import { LIMITS } from './ingest.ts';
+import { deleteSource, mintFileLink, openFileLink, readSourceFile } from './files.ts';
 
 type Env = { Variables: { ctx: S.Ctx } };
 
@@ -77,6 +78,30 @@ export function buildApi(db: DB = getDb()) {
     }
     const u = S.createUser(db, typeof body.name === 'string' ? body.name.slice(0, 60) : 'Writer');
     return c.json(u);
+  });
+
+  // Signed, expiring link to ONE private original file. The signature names the workspace, the file and the expiry.
+  api.get('/files/:token', (c) => {
+    const r = openFileLink(db, c.req.param('token'));
+    if (!r.ok)
+      return c.json(
+        {
+          error: {
+            code: r.reason,
+            message:
+              r.reason === 'expired' ? 'This link has expired. Ask for a new one.' : r.reason === 'gone' ? 'This file no longer exists.' : 'Invalid link.',
+          },
+        },
+        r.status,
+      );
+    return new Response(new Uint8Array(r.file.bytes), {
+      headers: {
+        'content-type': r.file.mime,
+        'content-disposition': `attachment; filename="${r.file.filename.replace(/[^\w.\- ]/g, '_')}"`,
+        'cache-control': 'private, no-store',
+        'x-content-type-options': 'nosniff',
+      },
+    });
   });
 
   api.use('*', async (c, next) => {
@@ -440,6 +465,26 @@ export function buildApi(db: DB = getDb()) {
       ),
     ),
   );
+  api.get('/sources/:id/file', (c) => {
+    const f = readSourceFile(X(c), c.req.param('id'), c.req.query('version') || undefined);
+    return new Response(new Uint8Array(f.bytes), {
+      headers: {
+        'content-type': f.mime,
+        'content-disposition': `attachment; filename="${f.filename.replace(/[^\w.\- ]/g, '_')}"`,
+        'cache-control': 'private, no-store',
+        'x-content-type-options': 'nosniff',
+        'x-file-hash': f.hash,
+      },
+    });
+  });
+  api.post('/sources/:id/file-link', async (c) => {
+    const b = z
+      .object({ ttlSeconds: z.number().int().min(10).max(3600).optional(), versionId: z.string().optional() })
+      .parse(await c.req.json().catch(() => ({})));
+    const l = mintFileLink(X(c), c.req.param('id'), b.ttlSeconds ?? 300, b.versionId);
+    return c.json({ url: `/api/files/${l.token}`, expiresAt: l.expiresAt, ttlSeconds: l.ttlSeconds });
+  });
+  api.delete('/sources/:id', (c) => c.json(deleteSource(X(c), c.req.param('id'))));
   api.get('/passages/:id', (c) => c.json(S.getPassage(X(c), c.req.param('id'))));
   api.get('/assignments/:id/search', async (c) => c.json(await S.searchPassages(X(c), c.req.param('id'), c.req.query('q') ?? '')));
 
