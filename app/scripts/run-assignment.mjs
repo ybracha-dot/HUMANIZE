@@ -84,13 +84,9 @@ try {
   }
 
   // ---- course, assignment (the student's path) ---------------------------------------------------
-  await page.getByLabel('New course name').fill('ENV 210: Urban Environments (synthetic)');
-  await page.getByRole('button', { name: 'Add', exact: true }).click();
-  await page.waitForURL(/\/courses\//);
-  await page.getByLabel('New assignment title').fill('Assignment 3: Trees and city heat');
-  await page.getByLabel('Genre').selectOption('academic_argument');
-  await page.getByRole('button', { name: 'Add', exact: true }).click();
-  await page.getByRole('link', { name: 'Assignment 3: Trees and city heat' }).click();
+  await page.getByTestId('start-title').fill('Assignment 3: Trees and city heat');
+  await page.getByTestId('start-course-name').fill('ENV 210: Urban Environments (synthetic)');
+  await page.getByTestId('start-go').click();
   await page.waitForURL(/\/assignments\/[^/]+\/materials$/);
   const asgId = page.url().split('/')[4];
 

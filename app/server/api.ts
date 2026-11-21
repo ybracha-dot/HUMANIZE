@@ -135,10 +135,17 @@ export function buildApi(db: DB = getDb()) {
     const assignments = all(
       db,
       `SELECT a.id, a.title, a.course_id, c.name course_name, a.created_at,
-        (SELECT id FROM documents d WHERE d.assignment_id=a.id AND d.workspace_id=a.workspace_id ORDER BY created_at LIMIT 1) document_id
-      FROM assignments a JOIN courses c ON c.id=a.course_id AND c.workspace_id=a.workspace_id WHERE a.workspace_id=? ORDER BY a.created_at DESC LIMIT 8`,
+        (SELECT id FROM documents d WHERE d.assignment_id=a.id AND d.workspace_id=a.workspace_id ORDER BY created_at LIMIT 1) document_id, a.state
+      FROM assignments a JOIN courses c ON c.id=a.course_id AND c.workspace_id=a.workspace_id WHERE a.workspace_id=?`,
       x.ws,
-    );
+    )
+      .map((r) => {
+        const resume = (unj(r.state, {}) as any)?.ui?.resume as { stage?: string; at?: number } | undefined;
+        const { state: _s, ...rest } = r;
+        return { ...(rest as Record<string, any>), resumeStage: resume?.stage ?? null, touched: Math.max(Number(resume?.at ?? 0), Number(r.created_at ?? 0)) } as Record<string, any>;
+      })
+      .sort((p, q) => q.touched - p.touched)
+      .slice(0, 8);
     const courses = all(db, 'SELECT id, name FROM courses WHERE workspace_id=? ORDER BY created_at DESC', x.ws);
     const running = J.listRuns(x, undefined, 10).filter((r) => ['queued', 'running', 'blocked', 'paused'].includes(r.status));
     const pending = all(db, "SELECT document_id, COUNT(*) n FROM proposals WHERE workspace_id=? AND decision='pending' GROUP BY document_id", x.ws);
@@ -154,17 +161,13 @@ export function buildApi(db: DB = getDb()) {
     else if (assignments.length) {
       const a = assignments[0];
       const p = pending.find((q) => q.document_id === a.document_id);
+      const stage = a.resumeStage && ['materials', 'plan', 'draft', 'review', 'export'].includes(a.resumeStage) ? a.resumeStage : p ? 'review' : a.document_id ? 'draft' : 'materials';
+      const to = `/assignments/${a.id}/${stage}`;
       first = p
-        ? {
-            label: `Review ${p.n} suggestion${p.n === 1 ? '' : 's'}`,
-            to: `/assignments/${a.id}`,
-          }
+        ? { label: `Decide on ${p.n} recommendation${p.n === 1 ? '' : 's'}`, to }
         : a.document_id
-          ? { label: 'Continue writing', to: `/assignments/${a.id}` }
-          : {
-              label: 'Start from an idea or a draft',
-              to: `/assignments/${a.id}`,
-            };
+          ? { label: 'Continue writing', to }
+          : { label: `Set up “${a.title}”`, to };
     }
     return c.json({
       assignments,

@@ -149,7 +149,7 @@ try {
   await shot(page, 'review-evidence-desktop');
   await page.keyboard.press('Escape');
   await page.getByTestId('source-sheet').waitFor({ state: 'detached' });
-  assert.match(await page.evaluate(() => document.activeElement?.textContent ?? ''), /Open the evidence/);
+  await page.waitForFunction(() => /Open the evidence/.test(document.activeElement?.textContent ?? ''));
   // keyboard: keep wording on the causal rewrite, use the limitation
   await pick('Argument');
   await page.locator('body').click({ position: { x: 5, y: 300 } });

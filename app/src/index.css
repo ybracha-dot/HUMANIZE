@@ -224,7 +224,7 @@ a {
     @apply inline-flex min-h-[44px] items-center justify-center gap-1.5 rounded-md border border-edge bg-surface px-4 py-2 text-sm font-medium text-ink hover:bg-tint disabled:cursor-not-allowed disabled:opacity-50;
   }
   .btn-primary {
-    @apply border-accent bg-accent text-accent-ink hover:opacity-90;
+    @apply border-accent bg-accent text-accent-ink hover:opacity-90 disabled:border-rule disabled:bg-tint disabled:text-ink2 disabled:opacity-100;
   }
   .btn-quiet {
     @apply border-transparent bg-transparent hover:bg-tint;

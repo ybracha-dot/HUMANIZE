@@ -73,7 +73,7 @@ try {
       assert.match(await page.getByTestId('evidence-highlight').first().innerText(), /800.*words/i);
       await page.keyboard.press('Escape');
       await page.getByTestId('source-sheet').waitFor({ state: 'detached' });
-      assert.equal(await page.evaluate(() => document.activeElement?.textContent), 'Open the original');
+      await page.waitForFunction(() => document.activeElement?.textContent === 'Open the original'); // focus returns just after the sheet unmounts
       // one click records the choice
       await page.getByTestId('conflict-option').filter({ hasText: 'Assignment sheet' }).getByTestId('conflict-choose').click();
       await page.getByTestId('conflict-chooser').waitFor({ state: 'detached' });

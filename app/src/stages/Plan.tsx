@@ -3,7 +3,7 @@ import { ArrowDown, ArrowUp, Trash2 } from 'lucide-react';
 import { post, put } from '@/lib/api';
 import { useShell } from '@/lib/shell';
 import { ErrorNote, Spinner, cx } from '@/lib/ui';
-import { PassageChip } from '@/components/PassageChip';
+import { PassageChip, TextWithSources } from '@/components/PassageChip';
 
 const SAMPLE_IDEA = 'I think attendance helps, but motivated students might also show up more.';
 
@@ -166,7 +166,7 @@ export default function Plan() {
                 <p className="mt-2">{x.thesis}</p>
                 <p className="mt-2 text-sm text-ink2">{x.summary}</p>
                 <p className="mt-2 text-sm">
-                  <b>What would weaken it:</b> {x.weakeningFact}
+                  <b>What would weaken it:</b> <TextWithSources text={x.weakeningFact} backLabel="Back to my plan" />
                 </p>
                 <div className="mt-2 flex flex-wrap items-center gap-1.5">
                   {x.supportingPassageIds.length ? (

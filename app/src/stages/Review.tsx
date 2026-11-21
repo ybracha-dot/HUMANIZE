@@ -5,7 +5,7 @@ import { get, newKey, post } from '@/lib/api';
 import { useShell, plural } from '@/lib/shell';
 import { ErrorNote, Spinner, cx, useAsync, useInterval } from '@/lib/ui';
 import { RunPanel } from '@/components/RunPanel';
-import { PassageChip } from '@/components/PassageChip';
+import { PassageChip, TextWithSources } from '@/components/PassageChip';
 
 const ISSUE: Record<string, string> = {
   unsupported_causality: 'Overstated cause',
@@ -597,7 +597,11 @@ function Recommendation({
         <b>{ISSUE[p.issue] ?? p.issue}</b>
         {p.rubricCriterionId && criteria[p.rubricCriterionId] ? <span className="text-ink2"> · {criteria[p.rubricCriterionId]}</span> : null}
       </p>
-      {p.reason && <p className="mt-1 text-ink2">{p.reason}</p>}
+      {p.reason && (
+        <p className="mt-1 text-ink2">
+          <TextWithSources text={p.reason} backLabel="Back to this recommendation" />
+        </p>
+      )}
       {(p.contextBefore || p.contextAfter) && (
         <p className="mt-3 text-sm text-ink2" data-testid="sentence-context">
           …{String(p.contextBefore ?? '').slice(-140)}
@@ -614,7 +618,7 @@ function Recommendation({
             <li key={i} className="flex gap-2">
               <AlertTriangle size={14} className="mt-0.5 shrink-0 text-warn" aria-hidden />
               <span>
-                <b>This could change your meaning.</b> {f.message}
+                <b>This could change your meaning.</b> <TextWithSources text={f.message} backLabel="Back to this recommendation" />
               </span>
             </li>
           ))}
@@ -622,14 +626,15 @@ function Recommendation({
       )}
       {p.meaningChange && material.length === 0 && (
         <p className="mt-3 text-sm">
-          <b>What changes:</b> {p.meaningChange}
+          <b>What changes:</b> <TextWithSources text={p.meaningChange} backLabel="Back to this recommendation" />
         </p>
       )}
       {p.disagreement && (
         <div className="mt-3 rounded-md border border-edge p-3 text-sm" data-testid="disagreement">
-          <b>Two reviewers disagree.</b> The second says <i>{p.disagreement.critic.verdict}</i>: {p.disagreement.critic.reasons.join(' ')}
+          <b>Two reviewers disagree.</b> The second says <i>{p.disagreement.critic.verdict}</i>:{' '}
+          <TextWithSources text={p.disagreement.critic.reasons.join(' ')} backLabel="Back to this recommendation" />
           <p className="mt-1">
-            <b>What would settle it:</b> {p.disagreement.settleBy}
+            <b>What would settle it:</b> <TextWithSources text={p.disagreement.settleBy} backLabel="Back to this recommendation" />
           </p>
         </div>
       )}

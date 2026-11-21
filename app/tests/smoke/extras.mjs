@@ -13,6 +13,27 @@ const mkAsg = async (title) => {
 };
 const stageOverflow = (page) => page.evaluate(() => document.documentElement.scrollWidth - window.innerWidth);
 try {
+  // ---- 0 · Home: first run starts a paper in one form; later it picks up where you left off
+  {
+    const { page, errors } = await studio.newPage(DESKTOP);
+    allErrors.push(errors);
+    await page.goto(`${studio.base}/`);
+    await page.getByTestId('start-paper').waitFor();
+    assert.equal(await page.getByTestId('start-go').isDisabled(), true);
+    await page.getByTestId('start-title').fill('Home journey paper');
+    await page.getByTestId('start-course-name').fill('HIS 200');
+    await page.getByTestId('start-go').click();
+    await page.waitForURL(/\/assignments\/[^/]+\/materials$/);
+    await page.getByTestId('skip-syllabus').click();
+    await page.goto(`${studio.base}/`);
+    await page.getByTestId('first-action').waitFor();
+    assert.match(await page.getByTestId('first-action').innerText(), /Home journey paper/);
+    await page.getByTestId('first-action').click();
+    await page.waitForURL(/\/materials$/);
+    await shot(page, 'home-start-desktop');
+    log('home: one form starts a paper (course created inline); Home then offers to pick up at the right stage');
+  }
+
   // ---- A · stages that cannot be used yet say why and offer the next step; deep links work
   {
     const id = await mkAsg('Locked');

@@ -6,6 +6,9 @@ import { SourceReader, type JumpTarget } from './SourceReader';
 /** Evidence opens here, at the exact quote: a drawer on desktop, a bottom sheet on a phone. Escape or Back closes it and focus returns to where the student was. */
 export function SourceSheet({ target, backLabel, onClose }: { target: JumpTarget | null; backLabel: string; onClose: () => void }) {
   const opener = useRef<HTMLElement | null>(null);
+  // Remember who asked the moment the sheet is requested (render happens before focus moves), so a fast Escape still returns focus.
+  if (target && !opener.current && document.activeElement instanceof HTMLElement && document.activeElement !== document.body)
+    opener.current = document.activeElement;
   return (
     <Dialog.Root open={!!target} onOpenChange={(o) => !o && onClose()}>
       <Dialog.Portal>
@@ -14,9 +17,6 @@ export function SourceSheet({ target, backLabel, onClose }: { target: JumpTarget
           aria-describedby={undefined}
           className="fixed inset-y-0 right-0 z-50 flex w-full max-w-[500px] flex-col overflow-hidden border-l border-rule bg-surface shadow-xl max-md:inset-x-0 max-md:bottom-0 max-md:top-auto max-md:h-[88vh] max-md:max-w-none max-md:rounded-t-xl max-md:border-l-0 max-md:border-t"
           data-testid="source-sheet"
-          onOpenAutoFocus={() => {
-            opener.current = document.activeElement instanceof HTMLElement ? document.activeElement : null;
-          }}
           onCloseAutoFocus={(e) => {
             const el = opener.current;
             opener.current = null;

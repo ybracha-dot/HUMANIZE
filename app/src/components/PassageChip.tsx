@@ -45,3 +45,9 @@ export function PassageChip({ id, backLabel, hint }: { id: string; backLabel: st
     </button>
   );
 }
+
+/** Fixture and model text may mention a passage id. Show the reading's name and page instead of "src_3_p01". */
+export function TextWithSources({ text, backLabel }: { text: string; backLabel: string }) {
+  const parts = String(text).split(/(src_\d+_p\d+)/g);
+  return <>{parts.map((p, i) => (/^src_\d+_p\d+$/.test(p) ? <PassageChip key={i} id={p} backLabel={backLabel} /> : <span key={i}>{p}</span>))}</>;
+}

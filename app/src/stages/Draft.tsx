@@ -255,241 +255,245 @@ export default function Draft() {
     );
 
   return (
-    <div className="mx-auto w-full max-w-[46rem] px-4 pb-24 pt-6" data-testid="stage-draft">
-      <h1 className="sr-only" tabIndex={-1} data-stage-heading>
-        Draft
-      </h1>
-      {/* quiet status line */}
-      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-ink2" data-testid="draft-bar">
-        <span data-testid="save-state">{failed ? 'Not saved. A copy is kept on this device.' : saving ? 'Saving…' : dirty ? 'Unsaved changes' : 'Saved'}</span>
-        <span data-testid="word-count">
-          {count ?? 0} {count === 1 ? 'word' : 'words'}
-        </span>
-        {tr && target && (
-          <button
-            className="link"
-            onClick={() => openFromDraft({ passageId: target.passageId, quote: { start: target.start, end: target.end } })}
-            data-testid="word-target"
-            aria-label={`Word target ${target.value}, ${lengthState}. Open where this came from.`}
-          >
-            target {tr.min.toLocaleString()}–{tr.max.toLocaleString()} · {lengthState}
-          </button>
-        )}
-        {conflictOpen && (
-          <button className="link text-warn" onClick={() => go('materials')} data-testid="length-undecided">
-            Word limit not chosen yet
-          </button>
-        )}
-      </div>
+    <div className={cx(drawer && 'md:pr-[420px]')}>
+      <div className="mx-auto w-full max-w-[46rem] px-4 pb-24 pt-6" data-testid="stage-draft">
+        <h1 className="sr-only" tabIndex={-1} data-stage-heading>
+          Draft
+        </h1>
+        {/* quiet status line */}
+        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-sm text-ink2" data-testid="draft-bar">
+          <span data-testid="save-state">
+            {failed ? 'Not saved. A copy is kept on this device.' : saving ? 'Saving…' : dirty ? 'Unsaved changes' : 'Saved'}
+          </span>
+          <span data-testid="word-count">
+            {count ?? 0} {count === 1 ? 'word' : 'words'}
+          </span>
+          {tr && target && (
+            <button
+              className="link"
+              onClick={() => openFromDraft({ passageId: target.passageId, quote: { start: target.start, end: target.end } })}
+              data-testid="word-target"
+              aria-label={`Word target ${target.value}, ${lengthState}. Open where this came from.`}
+            >
+              target {tr.min.toLocaleString()}–{tr.max.toLocaleString()} · {lengthState}
+            </button>
+          )}
+          {conflictOpen && (
+            <button className="link text-warn" onClick={() => go('materials')} data-testid="length-undecided">
+              Word limit not chosen yet
+            </button>
+          )}
+        </div>
 
-      <div className="mt-3 flex flex-wrap items-center gap-2" role="toolbar" aria-label="Draft tools">
-        <button
-          className="btn"
-          onClick={() => protect(false)}
-          data-testid="protect-wording"
-          title="Select words first to protect just those, or leave the cursor in a paragraph"
-        >
-          <Lock size={14} aria-hidden /> Protect wording
-        </button>
-        <Dialog.Root open={drawer !== null} onOpenChange={(v) => !v && setDrawer(null)} modal={false}>
+        <div className="mt-3 flex flex-wrap items-center gap-2" role="toolbar" aria-label="Draft tools">
           <button
             className="btn"
-            aria-haspopup="dialog"
-            aria-expanded={drawer !== null}
-            onClick={() => setDrawer(drawer ? null : 'outline')}
-            data-testid="open-drawer"
+            onClick={() => protect(false)}
+            data-testid="protect-wording"
+            title="Select words first to protect just those, or leave the cursor in a paragraph"
           >
-            Outline, brief and sources
+            <Lock size={14} aria-hidden /> Protect wording
           </button>
-          <Dialog.Portal>
-            <Dialog.Content
-              aria-describedby={undefined}
-              onInteractOutside={(e) => e.preventDefault()}
-              className="fixed inset-y-0 right-0 z-30 flex w-full max-w-[420px] flex-col border-l border-rule bg-surface shadow-xl max-md:inset-x-0 max-md:bottom-0 max-md:top-auto max-md:h-[70vh] max-md:max-w-none max-md:rounded-t-xl max-md:border-l-0 max-md:border-t"
-              data-testid="drawer"
-            >
-              <div className="flex items-center justify-between border-b border-rule px-3 py-2">
-                <Dialog.Title className="font-semibold">While you write</Dialog.Title>
-                <Dialog.Close className="btn btn-quiet px-2" aria-label="Close panel" data-testid="drawer-close">
-                  <X size={18} />
-                </Dialog.Close>
-              </div>
-              <div role="tablist" aria-label="Reference" className="flex gap-1 border-b border-rule px-2 py-1.5">
-                {(['outline', 'brief', 'sources', 'history'] as Tab[]).map((t) => (
-                  <button
-                    key={t}
-                    role="tab"
-                    aria-selected={drawer === t}
-                    className={cx('btn px-3 capitalize', drawer === t && 'bg-tint font-semibold')}
-                    onClick={() => setDrawer(t)}
-                    data-testid={`drawer-tab-${t}`}
-                  >
-                    {t}
-                  </button>
-                ))}
-              </div>
-              <div className="min-h-0 flex-1 overflow-y-auto p-4" role="tabpanel">
-                {drawer === 'outline' && (
-                  <OutlineTab
-                    d={d}
-                    onProtectThesis={() => protect(true)}
-                    onUnlock={async (id) => {
-                      await del(`/documents/${docId}/locks/${id}`);
-                      await doc.reload();
-                    }}
-                  />
-                )}
-                {drawer === 'brief' && <BriefView conflictOpen={false} onChooseConflict={() => go('materials')} readOnly />}
-                {drawer === 'sources' && <SourcesTab onOpen={openFromDraft} />}
-                {drawer === 'history' && <HistoryTab docId={docId} assignmentId={o.assignment.id} />}
-              </div>
-            </Dialog.Content>
-          </Dialog.Portal>
-        </Dialog.Root>
-        <button className="btn btn-primary ml-auto" onClick={() => go('review')} data-testid="to-review">
-          Review my draft
-        </button>
-      </div>
-
-      {recover && (
-        <div role="alert" className="mt-4 rounded-md border border-warn p-3 text-sm" data-testid="recover-banner">
-          <p>
-            <b>Text from your last visit was not saved.</b> A copy was kept on this device.
-          </p>
-          <div className="mt-2 flex gap-3">
+          <Dialog.Root open={drawer !== null} onOpenChange={(v) => !v && setDrawer(null)} modal={false}>
             <button
-              className="btn btn-primary"
-              onClick={async () => {
-                const next = recover.paragraphs;
-                setRecover(null);
-                // restore it as a normal save so history shows it
-                const cur = dRef.current;
-                if (cur) {
+              className="btn"
+              aria-haspopup="dialog"
+              aria-expanded={drawer !== null}
+              onClick={() => setDrawer(drawer ? null : 'outline')}
+              data-testid="open-drawer"
+            >
+              Outline, brief and sources
+            </button>
+            <Dialog.Portal>
+              <Dialog.Content
+                aria-describedby={undefined}
+                onInteractOutside={(e) => e.preventDefault()}
+                className="fixed inset-y-0 right-0 z-30 flex w-full max-w-[420px] flex-col border-l border-rule bg-surface shadow-xl max-md:inset-x-0 max-md:bottom-0 max-md:top-auto max-md:h-[70vh] max-md:max-w-none max-md:rounded-t-xl max-md:border-l-0 max-md:border-t"
+                data-testid="drawer"
+              >
+                <div className="flex items-center justify-between border-b border-rule px-3 py-2">
+                  <Dialog.Title className="font-semibold">While you write</Dialog.Title>
+                  <Dialog.Close className="btn btn-quiet px-2" aria-label="Close panel" data-testid="drawer-close">
+                    <X size={18} />
+                  </Dialog.Close>
+                </div>
+                <div role="tablist" aria-label="Reference" className="flex gap-1 border-b border-rule px-2 py-1.5">
+                  {(['outline', 'brief', 'sources', 'history'] as Tab[]).map((t) => (
+                    <button
+                      key={t}
+                      role="tab"
+                      aria-selected={drawer === t}
+                      className={cx('btn px-3 capitalize', drawer === t && 'bg-tint font-semibold')}
+                      onClick={() => setDrawer(t)}
+                      data-testid={`drawer-tab-${t}`}
+                    >
+                      {t}
+                    </button>
+                  ))}
+                </div>
+                <div className="min-h-0 flex-1 overflow-y-auto p-4" role="tabpanel">
+                  {drawer === 'outline' && (
+                    <OutlineTab
+                      d={d}
+                      onProtectThesis={() => protect(true)}
+                      onUnlock={async (id) => {
+                        await del(`/documents/${docId}/locks/${id}`);
+                        await doc.reload();
+                      }}
+                    />
+                  )}
+                  {drawer === 'brief' && <BriefView conflictOpen={false} onChooseConflict={() => go('materials')} readOnly />}
+                  {drawer === 'sources' && <SourcesTab onOpen={openFromDraft} />}
+                  {drawer === 'history' && <HistoryTab docId={docId} assignmentId={o.assignment.id} />}
+                </div>
+              </Dialog.Content>
+            </Dialog.Portal>
+          </Dialog.Root>
+          <button className="btn btn-primary ml-auto" onClick={() => go('review')} data-testid="to-review">
+            Review my draft
+          </button>
+        </div>
+
+        {recover && (
+          <div role="alert" className="mt-4 rounded-md border border-warn p-3 text-sm" data-testid="recover-banner">
+            <p>
+              <b>Text from your last visit was not saved.</b> A copy was kept on this device.
+            </p>
+            <div className="mt-2 flex gap-3">
+              <button
+                className="btn btn-primary"
+                onClick={async () => {
+                  const next = recover.paragraphs;
+                  setRecover(null);
+                  // restore it as a normal save so history shows it
+                  const cur = dRef.current;
+                  if (cur) {
+                    try {
+                      await post(`/documents/${docId}/revisions`, { baseRevisionId: cur.revision.id, paragraphs: next, label: 'Recovered text' });
+                      writeBackup(docId, null);
+                      await doc.reload();
+                    } catch (e) {
+                      setErr(e);
+                    }
+                  }
+                }}
+                data-testid="recover-restore"
+              >
+                Restore it
+              </button>
+              <button
+                className="btn"
+                onClick={() => {
+                  writeBackup(docId, null);
+                  setRecover(null);
+                }}
+                data-testid="recover-discard"
+              >
+                Discard it
+              </button>
+            </div>
+          </div>
+        )}
+
+        {stale && (
+          <div role="alert" className="mt-4 rounded-md border border-warn p-3 text-sm" data-testid="stale-banner">
+            <p>
+              <b>This draft changed somewhere else</b> (another tab or a review). Your text on this page is still here and was not saved over theirs.
+            </p>
+            <div className="mt-2 flex flex-wrap gap-3">
+              <button
+                className="btn btn-primary"
+                data-testid="stale-mine"
+                onClick={async () => {
+                  if (!stale.latest) return;
+                  setSaving(true);
                   try {
-                    await post(`/documents/${docId}/revisions`, { baseRevisionId: cur.revision.id, paragraphs: next, label: 'Recovered text' });
+                    const mine = editor.current!.getParagraphs();
+                    await post(`/documents/${docId}/revisions`, {
+                      baseRevisionId: stale.latest.revision.id,
+                      paragraphs: mine,
+                      label: 'Kept my text after a conflict',
+                    });
                     writeBackup(docId, null);
+                    setStale(null);
+                    setDirty(false);
                     await doc.reload();
                   } catch (e) {
                     setErr(e);
+                  } finally {
+                    setSaving(false);
                   }
-                }
-              }}
-              data-testid="recover-restore"
-            >
-              Restore it
-            </button>
-            <button
-              className="btn"
-              onClick={() => {
-                writeBackup(docId, null);
-                setRecover(null);
-              }}
-              data-testid="recover-discard"
-            >
-              Discard it
-            </button>
-          </div>
-        </div>
-      )}
-
-      {stale && (
-        <div role="alert" className="mt-4 rounded-md border border-warn p-3 text-sm" data-testid="stale-banner">
-          <p>
-            <b>This draft changed somewhere else</b> (another tab or a review). Your text on this page is still here and was not saved over theirs.
-          </p>
-          <div className="mt-2 flex flex-wrap gap-3">
-            <button
-              className="btn btn-primary"
-              data-testid="stale-mine"
-              onClick={async () => {
-                if (!stale.latest) return;
-                setSaving(true);
-                try {
-                  const mine = editor.current!.getParagraphs();
-                  await post(`/documents/${docId}/revisions`, {
-                    baseRevisionId: stale.latest.revision.id,
-                    paragraphs: mine,
-                    label: 'Kept my text after a conflict',
-                  });
+                }}
+              >
+                Save my text on top
+              </button>
+              <button
+                className="btn"
+                data-testid="stale-copy"
+                onClick={() => {
+                  const text = (editor.current?.getParagraphs() ?? []).map((p) => p.text).join('\n\n');
+                  const a = document.createElement('a');
+                  a.href = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
+                  a.download = 'my-text.txt';
+                  a.click();
+                }}
+              >
+                Download my text
+              </button>
+              <button
+                className="btn"
+                data-testid="stale-theirs"
+                onClick={async () => {
                   writeBackup(docId, null);
                   setStale(null);
                   setDirty(false);
                   await doc.reload();
-                } catch (e) {
-                  setErr(e);
-                } finally {
-                  setSaving(false);
-                }
-              }}
-            >
-              Save my text on top
-            </button>
-            <button
-              className="btn"
-              data-testid="stale-copy"
-              onClick={() => {
-                const text = (editor.current?.getParagraphs() ?? []).map((p) => p.text).join('\n\n');
-                const a = document.createElement('a');
-                a.href = URL.createObjectURL(new Blob([text], { type: 'text/plain' }));
-                a.download = 'my-text.txt';
-                a.click();
-              }}
-            >
-              Download my text
-            </button>
-            <button
-              className="btn"
-              data-testid="stale-theirs"
-              onClick={async () => {
-                writeBackup(docId, null);
-                setStale(null);
-                setDirty(false);
-                await doc.reload();
-              }}
-            >
-              Load the other version
-            </button>
+                }}
+              >
+                Load the other version
+              </button>
+            </div>
+            {stale.latest && !sameText(stale.latest.revision.paragraphs, editor.current?.getParagraphs() ?? []) && (
+              <details className="mt-2">
+                <summary className="cursor-pointer">See the other version</summary>
+                <div className="mt-1 space-y-2 whitespace-pre-wrap rounded border border-rule p-2">
+                  {stale.latest.revision.paragraphs.map((p: Para) => (
+                    <p key={p.id}>{p.text}</p>
+                  ))}
+                </div>
+              </details>
+            )}
           </div>
-          {stale.latest && !sameText(stale.latest.revision.paragraphs, editor.current?.getParagraphs() ?? []) && (
-            <details className="mt-2">
-              <summary className="cursor-pointer">See the other version</summary>
-              <div className="mt-1 space-y-2 whitespace-pre-wrap rounded border border-rule p-2">
-                {stale.latest.revision.paragraphs.map((p: Para) => (
-                  <p key={p.id}>{p.text}</p>
-                ))}
-              </div>
-            </details>
+        )}
+
+        <div className="mt-3">
+          <ErrorNote error={err ?? doc.error} />
+        </div>
+
+        <div className="mt-4">
+          {d && (
+            <div className="draft-page" data-testid="draft-page">
+              <Editor
+                ref={editor}
+                revisionId={d.revision.id}
+                paragraphs={d.revision.paragraphs}
+                marks={marks}
+                onDirty={onDirty}
+                onClaimClick={() => {}}
+                onPaste={(chars) => {
+                  void post(`/documents/${docId}/events`, { kind: 'paste', chars }).catch(() => {});
+                }}
+              />
+            </div>
+          )}
+          {d && !count && <p className="mt-2 text-ink2">Begin anywhere. Your outline is one click away under “Outline, brief and sources”.</p>}
+          {d && d.locks.length > 0 && (
+            <p className="mt-3 text-sm text-ink2" data-testid="protected-count">
+              <Lock size={12} className="mr-1 inline" aria-hidden />
+              {d.locks.length} protected {d.locks.length === 1 ? 'passage' : 'passages'}. Reviews will not change {d.locks.length === 1 ? 'it' : 'them'}.
+            </p>
           )}
         </div>
-      )}
-
-      <div className="mt-3">
-        <ErrorNote error={err ?? doc.error} />
-      </div>
-
-      <div className="mt-4">
-        {d && (
-          <div className="draft-page" data-testid="draft-page">
-            <Editor
-              ref={editor}
-              revisionId={d.revision.id}
-              paragraphs={d.revision.paragraphs}
-              marks={marks}
-              onDirty={onDirty}
-              onClaimClick={() => {}}
-              onPaste={(chars) => {
-                void post(`/documents/${docId}/events`, { kind: 'paste', chars }).catch(() => {});
-              }}
-            />
-          </div>
-        )}
-        {d && !count && <p className="mt-2 text-ink2">Begin anywhere. Your outline is in the panel above whenever you want it.</p>}
-        {d && d.locks.length > 0 && (
-          <p className="mt-3 text-sm text-ink2" data-testid="protected-count">
-            <Lock size={12} className="mr-1 inline" aria-hidden />
-            {d.locks.length} protected {d.locks.length === 1 ? 'passage' : 'passages'}. Reviews will not change {d.locks.length === 1 ? 'it' : 'them'}.
-          </p>
-        )}
       </div>
     </div>
   );
