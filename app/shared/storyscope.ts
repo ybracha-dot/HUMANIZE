@@ -1,6 +1,6 @@
-// Editorial checks for personal narrative and fiction, linked to StoryScope taxonomy features (see storyscope-manifest.json).
+// Editorial checks for FICTION, linked to StoryScope taxonomy features (see storyscope-manifest.json).
 //
-// Scope and honesty: the taxonomy was built for a human-vs-AI classification study of long fiction. These checks are ordinary
+// Scope and honesty: the taxonomy was built for a human-vs-AI classification study of short fiction, so taxonomy-linked guidance is scoped to fiction. These checks are ordinary
 // writing feedback (does the ending say what the action already showed?). They are NOT a measure of "human-ness", they are
 // never used to lower a detector score, and each one has an example where the wording should stay. Academic arguments and
 // business memos get their own checks (assignment requirements, evidence support, and the memo check below).
@@ -25,6 +25,8 @@ export interface NarrativeCheck {
   detect(paragraphs: Para[]): Omit<NarrativeFlag, 'taxonomyIds' | 'rule'>[];
   /** text on which this check must stay silent */
   keep: string[];
+  /** how the paper's evidence relates to this check (never a claim that following it makes text read as human) */
+  evidenceNote?: string;
   /** text on which it should speak */
   flag: string[];
 }
@@ -55,9 +57,11 @@ const first = (re: RegExp, s: string) => {
 export const NARRATIVE_CHECKS: NarrativeCheck[] = [
   {
     id: 'moral_restates_action',
-    genres: ['personal_narrative', 'fiction'],
+    genres: ['fiction'],
     taxonomyIds: CHECK_TAXONOMY_LINKS.moral_restates_action,
     title: 'Closing moral repeats what the scene already showed',
+    evidenceNote:
+      'Core feature SIT_MET_303 (Thematic Explicitness and Moralizing) is reported higher in the LLM average than in the human sample (3.28 vs 3.94 on a 1-5 scale, printed gap -0.65, Table 16). This check is editorial: a moral the scene already showed is redundant for any author.',
     detect(paras) {
       const out: ReturnType<NarrativeCheck['detect']> = [];
       const real = paras.filter((p) => p.text.trim());
@@ -82,9 +86,11 @@ export const NARRATIVE_CHECKS: NarrativeCheck[] = [
   },
   {
     id: 'named_emotion',
-    genres: ['personal_narrative', 'fiction'],
+    genres: ['fiction'],
     taxonomyIds: CHECK_TAXONOMY_LINKS.named_emotion,
     title: 'Emotion named where an action could carry it',
+    evidenceNote:
+      'The paper reports explicit emotion labels as MORE common in the human sample (AGENT_EMO_009 option explicit_emotion_labels: 29% vs 8% of stories, Table 16). So this check is craft advice about giving the reader the moment, not a claim that labelling reads as machine-written. Keep a label when it is deliberate.',
     detect(paras) {
       const out: ReturnType<NarrativeCheck['detect']> = [];
       for (const p of paras) {
@@ -104,7 +110,7 @@ export const NARRATIVE_CHECKS: NarrativeCheck[] = [
   },
   {
     id: 'stock_figure',
-    genres: ['personal_narrative', 'fiction'],
+    genres: ['fiction'],
     taxonomyIds: CHECK_TAXONOMY_LINKS.stock_figure,
     title: 'Stock figure of speech',
     detect(paras) {
@@ -126,9 +132,11 @@ export const NARRATIVE_CHECKS: NarrativeCheck[] = [
   },
   {
     id: 'narrator_verdict',
-    genres: ['personal_narrative', 'fiction'],
+    genres: ['fiction'],
     taxonomyIds: CHECK_TAXONOMY_LINKS.narrator_verdict,
     title: 'Narrator hands down a verdict',
+    evidenceNote:
+      'Core feature SIT_MET_501 (Narratorial Thematic Commentary, option yes) is reported in 52% of human-sample stories vs 77% of the LLM average (Table 16). Editorial advice only: it is about letting the scene judge, and it is not a human-likeness target.',
     detect(paras) {
       const out: ReturnType<NarrativeCheck['detect']> = [];
       for (const p of paras)
@@ -178,7 +186,7 @@ export function checkNarrative(paragraphs: Para[], genre: string) {
     return {
       genre,
       applicable: false,
-      note: 'Narrative checks apply to personal narrative and fiction. Academic arguments are checked against the assignment requirements and the readings; case memos get the recommendation check.',
+      note: 'StoryScope-derived narrative guidance is scoped to fiction, the domain the paper studied (short fiction). Personal narratives, academic arguments and memos are not covered by it; academic arguments are checked against the assignment requirements and the readings, and case memos get the recommendation check.',
       checks: [] as NarrativeFlag[],
     };
   const flags: NarrativeFlag[] = [];
