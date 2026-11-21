@@ -219,7 +219,7 @@ export function buildApi(db: DB = getDb()) {
       branches: all(db, 'SELECT id, name, head_revision_id FROM branches WHERE workspace_id=? AND document_id=? ORDER BY created_at', x.ws, id),
       locks, lockNotes: prefs, proposals: S.listProposals(x, id).filter((p) => ['pending', 'conflict'].includes(p.decision)), resolved: S.listProposals(x, id).filter((p) => !['pending', 'conflict'].includes(p.decision)).slice(0, 30),
       audits: S.listAudits(x, id, revision.id), requirementsHint: brief.items.filter((i) => i.kind === 'criterion').length,
-      structure: structureFlags(revision.paragraphs.filter((p) => p.text.trim())),
+      structure: [...structureFlags(revision.paragraphs.filter((p) => p.text.trim())), ...checkNarrative(revision.paragraphs, own(db, 'assignments', doc.assignment_id, x.ws)?.genre ?? 'academic_argument').checks.map((n) => ({ paragraphId: n.paragraphId, rule: n.rule, quote: n.quote, effect: n.effect }))],
       mode: S.getSettings(x).mode,
     };
   };

@@ -1,6 +1,6 @@
 {
   "status": "working",
-  "milestone": "M4",
+  "milestone": "M6",
   "evidence": [
     "M0: app scaffolded (Vite/React/TS/Tailwind, Hono API, node:sqlite); sample assignment fixtures generated; npm run typecheck and npm test pass",
     "M1: PDF/MD/TXT/DOCX ingest with printed page labels distinct from viewer index; brief items carry exact source quotes and conflicts; unreadable and scanned files fail per file with remedy (integration test passed)",
@@ -10,10 +10,19 @@
     "M6 (backend): SIGKILL of a real worker process mid-stage recovered by a second worker after lease expiry, one output per stage, no duplicate proposals or revisions (integration test passed, Linux, Node 22.23)",
     "M6 (backend): tenant isolation verified for unrelated user, read-only member and anonymous caller across 11 read routes and 6 write routes; prompt-injection PDF stored as data, secret never echoed",
     "M7 (adapters): Anthropic/OpenAI adapters verified against a local HTTP mock only (retry on 429, timeout => uncertain spend, schema repair, price gating, budget degradation, independence labelling). NOT a live-provider run: no keys in this environment",
-    "M2/M3/M5 (UI): Chromium smoke test passed end to end in fixture mode: sample -> idea -> 2 thesis options -> outline -> draft -> type -> lock thesis -> Quick review via worker -> evidence jump to viewer page 2 / printed page 14 with exact sentence highlighted and focus returned -> keyboard reject of causal rewrite -> accept limitation -> new browser profile reopens identical draft -> DOCX/TXT identical to approved text -> history restore keeps accepted version -> mobile 390px single panel (10.7s, Linux Chromium 1243)"
+    "M2/M3/M5 (UI): Chromium smoke test passed end to end in fixture mode: sample -> idea -> 2 thesis options -> outline -> draft -> type -> lock thesis -> Quick review via worker -> evidence jump to viewer page 2 / printed page 14 with exact sentence highlighted and focus returned -> keyboard reject of causal rewrite -> accept limitation -> new browser profile reopens identical draft -> DOCX/TXT identical to approved text -> history restore keeps accepted version -> mobile 390px single panel (10.7s, Linux Chromium 1243)",
+    "M4: StoryScope manifest built from the real upstream taxonomy (304/304 features, 10 dimensions, MIT, commit b82d935); 6 features linked to 4 editorial checks each with flag/keep examples; direction of association recorded as 'unknown' because arxiv.org is unreachable from this environment",
+    "M4: same idea in two registers keeps $3M, citation, quote, hedge, period and statistical qualifier; Spanish text untouched by English rules; hygiene keeps emoji joiner and Hebrew marks; feedback memory scoped per course and only confirmed 'recurring'; one rejection creates no rule",
+    "M4: skill state: humanizer vendored (MIT) and writing-studio-hygiene authored under skills/; personal ~/.claude activation NOT performed (cloud container); upstream clean-user-facing-text reviewed and deliberately not installed (detector-score workflow); exact activation steps in skills/ACTIVATION.md"
   ],
-  "next": "M4: StoryScope manifest from upstream taxonomy.json + paper, voice/two-register tests, skill install state. Then M6 RLS migration in PGlite, extension notes; M7 eval corpus, handoff docs.",
-  "blockers": [],
+  "next": "M6: Supabase RLS migration + PGlite two-user test; extension notes. M7: 24+ fixture eval corpus with metrics, handoff docs, final run.",
+  "blockers": [
+    {
+      "category": "network",
+      "item": "StoryScope paper (arXiv 2604.03136) could not be read",
+      "remedy": "Allow arxiv.org in the environment network settings or place the PDF in the repo, then fill directionReported in shared/storyscope-manifest.json via scripts/build-taxonomy-manifest.ts"
+    }
+  ],
   "verification": [
     {
       "command": "npm run typecheck && npm test",
@@ -29,6 +38,11 @@
       "command": "npm run test:smoke",
       "outcome": "passed",
       "scope": "real Chromium, fixture mode, Linux"
+    },
+    {
+      "command": "npx vitest run",
+      "outcome": "passed",
+      "scope": "fixture mode + local HTTP mock, 83 tests"
     }
   ]
 }

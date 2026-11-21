@@ -17,6 +17,7 @@ export default function Course() {
   const [err, setErr] = useState<unknown>(null);
   const [busy, setBusy] = useState(false);
   const [asgTitle, setAsgTitle] = useState('');
+  const [genre, setGenre] = useState('academic_argument');
   const [fb, setFb] = useState({ comment: '', explanation: '' });
   const [manual, setManual] = useState<{ id: string; text: string; page: string; label: string } | null>(null);
   const fileRef = useRef<HTMLInputElement>(null);
@@ -47,8 +48,9 @@ export default function Course() {
 
       <Section title="Assignments">
         <ul className="mb-2 space-y-2">{d.assignments.map((a: any) => <li key={a.id}><Link to={`/assignments/${a.id}`} className="card block p-3 hover:bg-stone-50 dark:hover:bg-stone-800/40">{a.title}</Link></li>)}</ul>
-        <form className="flex gap-2" onSubmit={async (e) => { e.preventDefault(); if (!asgTitle.trim()) return; await post(`/courses/${id}/assignments`, { title: asgTitle }); setAsgTitle(''); c.reload(); }}>
+        <form className="flex gap-2" onSubmit={async (e) => { e.preventDefault(); if (!asgTitle.trim()) return; await post(`/courses/${id}/assignments`, { title: asgTitle, genre }); setAsgTitle(''); c.reload(); }}>
           <input className="input" placeholder="New assignment title" value={asgTitle} onChange={(e) => setAsgTitle(e.target.value)} aria-label="New assignment title" />
+          <select className="input w-56" value={genre} onChange={(e) => setGenre(e.target.value)} aria-label="Genre"><option value="academic_argument">Academic argument</option><option value="case_memo">Case memo</option><option value="personal_narrative">Personal narrative</option><option value="fiction">Fiction</option></select>
           <button className="btn btn-primary" type="submit">Add</button>
         </form>
       </Section>
