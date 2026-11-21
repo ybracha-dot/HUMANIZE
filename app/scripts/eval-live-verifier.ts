@@ -19,16 +19,29 @@ for (const fx of FIXTURES.filter((f) => f.split === 'heldout')) {
   });
 }
 for (const d of DOCS2.filter((x) => x.split === 'unseen')) {
-  docs.push({ group: d.docId, set: 'unseen', passages: d.passages, claims: d.claims.map((c, i) => ({ text: c.text, expected: c.expected, id: `${d.docId}/${i}` })) });
+  docs.push({
+    group: d.docId,
+    set: 'unseen',
+    passages: d.passages,
+    claims: d.claims.map((c, i) => ({ text: c.text, expected: c.expected, id: `${d.docId}/${i}` })),
+  });
 }
 let provider;
 try {
   provider = selectProviders('live').editor;
 } catch (e: any) {
-  console.error(`NOT RUN: ${e.message}\nSetup: export ANTHROPIC_API_KEY=... (or OPENAI_API_KEY and STUDIO_OPENAI_MODEL=...), STUDIO_PRICES_JSON, STUDIO_EVAL_BUDGET_USD.`);
+  console.error(
+    `NOT RUN: ${e.message}\nSetup: export ANTHROPIC_API_KEY=... (or OPENAI_API_KEY and STUDIO_OPENAI_MODEL=...), STUDIO_PRICES_JSON, STUDIO_EVAL_BUDGET_USD.`,
+  );
   process.exit(3);
 }
-const r = await runLiveVerifierEval({ provider, price: envPrices()[provider.id] ?? null, budgetUsd: Number(process.env.STUDIO_EVAL_BUDGET_USD) || null, docs, dryRun: process.argv.includes('--dry-run') });
+const r = await runLiveVerifierEval({
+  provider,
+  price: envPrices()[provider.id] ?? null,
+  budgetUsd: Number(process.env.STUDIO_EVAL_BUDGET_USD) || null,
+  docs,
+  dryRun: process.argv.includes('--dry-run'),
+});
 if (r.refused) {
   console.error(`NOT RUN: ${r.refused} (planned upper bound ${Number.isFinite(r.plannedUpperBoundUsd) ? '$' + r.plannedUpperBoundUsd.toFixed(4) : 'unknown'})`);
   process.exit(r.refused === 'dry run' ? 0 : 3);

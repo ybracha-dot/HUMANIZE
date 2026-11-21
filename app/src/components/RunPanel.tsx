@@ -21,7 +21,17 @@ const MODES = [
   },
 ] as const;
 
-export function RunPanel({ documentId, assignmentId, onFinished, flushSave }: { documentId: string; assignmentId: string; onFinished: () => void; flushSave: () => Promise<void> }) {
+export function RunPanel({
+  documentId,
+  assignmentId,
+  onFinished,
+  flushSave,
+}: {
+  documentId: string;
+  assignmentId: string;
+  onFinished: () => void;
+  flushSave: () => Promise<void>;
+}) {
   const [mode, setMode] = useState<'quick' | 'evidence' | 'deep'>('quick');
   const [err, setErr] = useState<unknown>(null);
   const [starting, setStarting] = useState(false);
@@ -124,7 +134,8 @@ export function RunPanel({ documentId, assignmentId, onFinished, flushSave }: { 
           </button>
           {probe && (
             <p className="mt-2" data-testid="probe-result">
-              Live: <code>{probe.provider}</code> answered in {probe.latencyMs} ms, {probe.inputTokens} in / {probe.outputTokens} out tokens, cost ${Number(probe.costUsd ?? 0).toFixed(6)}.
+              Live: <code>{probe.provider}</code> answered in {probe.latencyMs} ms, {probe.inputTokens} in / {probe.outputTokens} out tokens, cost $
+              {Number(probe.costUsd ?? 0).toFixed(6)}.
             </p>
           )}
         </div>

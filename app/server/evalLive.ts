@@ -39,14 +39,21 @@ export interface LiveEvalResult {
 
 const none = (refused: string, planned: number): LiveEvalResult => ({ refused, plannedUpperBoundUsd: planned, receipts: [], rows: [], totalCostUsd: 0 });
 
-export async function runLiveVerifierEval(opts: { provider: Provider; price: Price | null; budgetUsd: number | null; docs: EvalDoc[]; dryRun?: boolean }): Promise<LiveEvalResult> {
+export async function runLiveVerifierEval(opts: {
+  provider: Provider;
+  price: Price | null;
+  budgetUsd: number | null;
+  docs: EvalDoc[];
+  dryRun?: boolean;
+}): Promise<LiveEvalResult> {
   const { provider, price, budgetUsd, docs } = opts;
   if (!provider.paid) return none('The fixture provider is not a live verifier.', 0);
   if (!price) return none(`No price configured for ${provider.id}. Set STUDIO_PRICES_JSON; prices are never assumed.`, NaN);
   const plan = docs.map((d) => ({ d, est: provider.estimate('evidence_verifier', { claims: d.claims, passages: d.passages }) }));
   const planned = plan.reduce((a, p) => a + costOf(price, { inputTokens: p.est.inputTokens, outputTokens: p.est.outputTokens }) * 1.1, 0);
   if (budgetUsd == null || !(budgetUsd > 0)) return none('No spending authorization: set STUDIO_EVAL_BUDGET_USD to a positive number.', planned);
-  if (planned > budgetUsd) return none(`The plan's upper bound $${planned.toFixed(4)} exceeds the authorized budget $${budgetUsd.toFixed(4)}. Nothing was called.`, planned);
+  if (planned > budgetUsd)
+    return none(`The plan's upper bound $${planned.toFixed(4)} exceeds the authorized budget $${budgetUsd.toFixed(4)}. Nothing was called.`, planned);
   if (opts.dryRun) return none('dry run', planned);
   const receipts: Receipt[] = [];
   const rows: LiveEvalRow[] = [];
@@ -56,7 +63,16 @@ export async function runLiveVerifierEval(opts: { provider: Provider; price: Pri
     const res = await provider.call('evidence_verifier', { claims, paragraphs: claims.map((c) => ({ id: c.claimId, text: c.text })), passages: d.passages });
     const cost = costOf(price, res.usage);
     spent += cost;
-    receipts.push({ group: d.group, provider: res.provider, model: res.model, latencyMs: res.latencyMs, inputTokens: res.usage.inputTokens, outputTokens: res.usage.outputTokens, costUsd: cost, requestRef: res.requestRef });
+    receipts.push({
+      group: d.group,
+      provider: res.provider,
+      model: res.model,
+      latencyMs: res.latencyMs,
+      inputTokens: res.usage.inputTokens,
+      outputTokens: res.usage.outputTokens,
+      costUsd: cost,
+      requestRef: res.requestRef,
+    });
     const parsed = EvidenceVerifierOut.safeParse(res.output);
     const live = new Map((parsed.success ? parsed.data.verdicts : []).map((v) => [v.claimId, v]));
     for (const c of d.claims) {

@@ -11,3 +11,15 @@ Goal: observe whether fewer manual handoffs and less conflict-resolution time ar
 **In-app counts** (no essay text): Settings > Pilot counts, or `GET /api/pilot/summary`. Activation = at least one verified evidence jump and one recorded decision.
 
 **Economics placeholder.** Contribution per paying user = collected revenue - refunds - payment fees - model input/output - OCR - storage - compute - support. Break-even completed runs = contribution before inference / variable cost per completed run. Use measured medians and 95th percentiles, current provider prices, and include abandoned and failed jobs. The brief's $8 / $0.40 / 20-run example is illustrative only.
+
+
+## Shortest path to a five-student private pilot
+Nothing here needs a hosted deployment or paid infrastructure. Each student runs the app on their own laptop; their papers never leave it.
+
+1. **You, once (the one credential step):** run the live smoke so you know the live path works with a real model and what it costs. See README, "Live run". Until this passes, run the pilot in demo mode and say so to the students.
+2. **Install packet per student:** Node >= 22.13, `git clone`, `cd app && npm ci && npm start`, and either demo mode (no key) or a key you or they provide with a small spending limit set at the provider. Do not share one key across students.
+3. **Tell them plainly:** suggestions in demo mode come from fixed rules, not a model; `supported` means "no rule objected", not "true"; they decide every change; the report is not proof of authorship.
+4. **Two assignments each, counterbalanced** (usual process vs. Writing Studio), per the design above. Use `docs/pilot-template.csv`. Collect only the CSV and the counts from Settings > Pilot counts; collect no essay text unless a student chooses to share it.
+5. **Blind scoring:** strip tool names, give a reader the two papers in random order with the instructor's rubric.
+6. **Known weak spots to brief the students on:** the checker can approve a reversed comparison or a role swap, a projection that drops its condition, and it cannot compare across languages (it abstains). Those are listed as expected-failure tests.
+7. **Stop rule:** if any student's data directory or key is exposed, rotate the key, delete `app/.data`, and stop.
