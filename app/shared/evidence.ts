@@ -160,10 +160,21 @@ const OPPOSITES: [RegExp, RegExp][] = [
     /\b(lower|less|fewer|smaller|decreas\w*|fell|fall[sn]?|down|declin\w*|drop\w*)\b/i,
   ],
 ];
-const EXPERIMENTAL =
-  /\b(randomi[sz]ed|randomly assigned|assigned at random|random assignment|controlled (?:trial|experiment)|experiment(?:al)?(?: group)?|instrument(?:al)? variable|natural experiment|difference-in-differences)\b/i;
+/** Revised direction lexicon: "cooler/warmer" are directions; "or more" ("30% or more") and "at least" are thresholds, not directions. */
+const OPPOSITES_REVISED: [RegExp, RegExp][] = [
+  [
+    /\b(higher|more(?=\s+(?:\w+\s+){0,3}than\b)|greater|increas\w*|rose|rise[sn]?|up|gain\w*|grew|growth|warmer|hotter)\b/i,
+    /\b(lower|less(?=\s+(?:\w+\s+){0,3}than\b)|fewer(?=\s+(?:\w+\s+){0,3}than\b)|smaller|decreas\w*|fell|fall[sn]?|down|declin\w*|drop\w*|cooler|colder)\b/i,
+  ],
+];
+const NEG_BEFORE = '(?<!\\bnot\\s)(?<!\\bnever\\s)(?<!\\bno\\s)(?<!\\bwithout\\s)';
+const EXPERIMENTAL = new RegExp(
+  NEG_BEFORE +
+    '\\b(randomi[sz]ed|randomly assigned|assigned at random|random assignment|controlled (?:trial|experiment)|experiment(?:al)?(?: group)?|instrument(?:al)? variable|natural experiment|difference-in-differences)\\b',
+  'i',
+);
 const OBSERVATIONAL =
-  /\b(chose whether|self[- ]select\w*|volunt\w+|survey(?:ed)?|observational|correlat\w+|associated|not randomly|did not assign|cross-sectional|opt(?:ed)? in|their own choice)\b/i;
+  /\b(chose whether|self[- ]select\w*|volunt\w+|survey(?:ed)?|observational|correlat\w+|associated|not randomly|not (?:assigned )?at random|did not assign|cross-sectional|opt(?:ed)? in|their own choice)\b/i;
 
 function bestSentence(passageText: string, claim: string): string {
   const sents = splitSentences(passageText);
@@ -186,22 +197,51 @@ function unitClass(n: NumFact): string {
   return n.unit === 'pp' ? 'percent' : n.unit;
 }
 
+/** Words that state a direction or comparison. A claim that states one is best supported by a sentence that states one too (lower <-> cooler). */
+const DIRECTION =
+  /\b(higher|lower|more|less|fewer|greater|smaller|cooler|warmer|faster|slower|better|worse|increas\w*|decreas\w*|reduc\w*|rais\w*|cool\w*|warm\w*|rose|rise[sn]?|fell|falls?|gain\w*|drop\w*|declin\w*)\b/i;
+function pickHit<T extends { passage: IndexedPassage; score: number }>(hits: T[], claimText: string): T {
+  if (hits.length < 2 || !DIRECTION.test(claimText)) return hits[0];
+  let best = hits[0];
+  let bestScore = -Infinity;
+  for (const h of hits) {
+    const score = h.score + (DIRECTION.test(bestSentence(h.passage.text, claimText)) ? 1.5 : 0);
+    if (score > bestScore) {
+      bestScore = score;
+      best = h;
+    }
+  }
+  return best;
+}
+
 /** Rule sets. 'baseline' is the first-pass verifier, kept byte-for-byte in behaviour so revisions can be compared on identical inputs. */
 export type Rules = 'baseline' | 'revised';
 
 const CLAUSE_SPLIT = /;|,?\s+(?:though|although|but|while|whereas|however|aunque|pero)\s+|\s+[—–]\s+/i;
 /** The clause of a sentence that the claim is actually about (shared vocabulary); negations and figures elsewhere in the sentence do not apply to it. */
 export function bestClause(sentence: string, claimText: string): string {
-  const parts = sentence.split(CLAUSE_SPLIT).map((x) => x.trim()).filter(Boolean);
+  const parts = sentence
+    .split(CLAUSE_SPLIT)
+    .map((x) => x.trim())
+    .filter(Boolean);
   if (parts.length < 2) return sentence;
   const c = new Set(tokenize(claimText));
-  let best = parts[0]; let score = -1;
-  for (const part of parts) { const n = tokenize(part).filter((t) => c.has(t)).length; if (n > score) { score = n; best = part; } }
+  let best = parts[0];
+  let score = -1;
+  for (const part of parts) {
+    const n = tokenize(part).filter((t) => c.has(t)).length;
+    if (n > score) {
+      score = n;
+      best = part;
+    }
+  }
   return best;
 }
 /** Tokens that mix letters and digits (B4, 1O5) are typical OCR damage to a figure. */
 const DAMAGED_FIGURE = /\b(?=[0-9A-Za-z]*\d)(?=[0-9A-Za-z]*[A-Za-z])[0-9A-Za-z]{2,}\b/g;
-function damagedFigures(text: string): string[] { return (text.match(DAMAGED_FIGURE) ?? []).filter((t) => !/^\d+(st|nd|rd|th|s|k|m|bn)$/i.test(t)); }
+function damagedFigures(text: string): string[] {
+  return (text.match(DAMAGED_FIGURE) ?? []).filter((t) => !/^\d+(st|nd|rd|th|s|k|m|bn)$/i.test(t));
+}
 
 export function verifyClaim(claim: Claim, index: PassageIndex, all: IndexedPassage[], opts: { rules?: Rules } = {}): ClaimVerdict {
   const rules = opts.rules ?? 'revised';
@@ -235,7 +275,7 @@ export function verifyClaim(claim: Claim, index: PassageIndex, all: IndexedPassa
       stale: false,
     };
   }
-  const top = hits[0];
+  const top = revised ? pickHit(hits, claim.text) : hits[0];
   const p = top.passage;
   // A study's design is described once for the whole source, so look at the same source's top hits, never other sources.
   const srcKey = (id: string) => id.replace(/_p\d+$/, '');
@@ -249,9 +289,19 @@ export function verifyClaim(claim: Claim, index: PassageIndex, all: IndexedPassa
   const cov = top.coverage;
   // Revised: a claim and passage in different languages cannot be compared word for word. Abstain rather than judge on figures alone.
   if (revised) {
-    const lc = detectLanguage(claim.text); const lp = detectLanguage(p.text);
+    const lc = detectLanguage(claim.text);
+    const lp = detectLanguage(p.text);
     if (lc !== 'other' && lp !== 'other' && lc !== lp)
-      return { ...base, verdict: 'insufficient', passageId: p.id, quote: null, reasons: [`The claim is in ${lc} and the passage is in ${lp}. This checker compares wording, so it cannot judge support across languages. Read the passage yourself.`], stale: !!p.stale };
+      return {
+        ...base,
+        verdict: 'insufficient',
+        passageId: p.id,
+        quote: null,
+        reasons: [
+          `The claim is in ${lc} and the passage is in ${lp}. This checker compares wording, so it cannot judge support across languages. Read the passage yourself.`,
+        ],
+        stale: !!p.stale,
+      };
   }
   const scope = revised ? bestClause(sent, claim.text) : sent;
   const damaged = revised ? damagedFigures(scope) : [];
@@ -288,7 +338,9 @@ export function verifyClaim(claim: Claim, index: PassageIndex, all: IndexedPassa
     }
     if (damaged.length && cn.unit !== 'year') {
       if (verdict !== 'contradicted') verdict = 'insufficient';
-      reasons.push(`The source text has a damaged figure (${damaged.map((d) => `"${d}"`).join(', ')}), possibly an OCR error. Check the original page before relying on ${cn.raw}.`);
+      reasons.push(
+        `The source text has a damaged figure (${damaged.map((d) => `"${d}"`).join(', ')}), possibly an OCR error. Check the original page before relying on ${cn.raw}.`,
+      );
       continue;
     }
     const comparable = passNums.filter((pn) => unitClass(pn) === unitClass(cn));
@@ -322,7 +374,7 @@ export function verifyClaim(claim: Claim, index: PassageIndex, all: IndexedPassa
     verdict = 'contradicted';
     reasons.push(cNeg ? 'The claim negates something the passage states.' : 'The passage negates something the claim states.');
   }
-  for (const [a, b] of OPPOSITES) {
+  for (const [a, b] of revised ? OPPOSITES_REVISED : OPPOSITES) {
     if (cov >= 0.4 && ((a.test(claim.text) && b.test(scope) && !a.test(scope)) || (b.test(claim.text) && a.test(scope) && !b.test(scope)))) {
       verdict = 'contradicted';
       reasons.push('The claim and the passage point in opposite directions.');
@@ -361,7 +413,12 @@ export function verifyClaim(claim: Claim, index: PassageIndex, all: IndexedPassa
   };
 }
 
-export function verifyParagraph(paragraph: string, passages: IndexedPassage[], idPrefix = 'c', opts: { rules?: Rules } = {}): { claims: Claim[]; verdicts: ClaimVerdict[] } {
+export function verifyParagraph(
+  paragraph: string,
+  passages: IndexedPassage[],
+  idPrefix = 'c',
+  opts: { rules?: Rules } = {},
+): { claims: Claim[]; verdicts: ClaimVerdict[] } {
   const index = new PassageIndex(passages);
   const claims = splitClaims(paragraph, idPrefix);
   return {

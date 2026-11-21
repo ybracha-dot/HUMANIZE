@@ -348,3 +348,38 @@ export async function seedDemo(c: Ctx) {
 void (null as unknown as DB);
 
 import { one } from './db.ts';
+
+/**
+ * One small, bounded request to confirm credentials, prices and budget before any real work. Live mode only. Records a normal
+ * spend receipt. Never returns or logs a key.
+ */
+export async function probeProvider(c: Ctx, assignmentId: string) {
+  requireWrite(c);
+  if (getSettings(c).mode !== 'live')
+    throw new HttpError(409, 'not_live', 'Switch to Live mode first. The probe never runs the fixture engine as if it were a provider.');
+  const sc = directCtx(c, assignmentId, 'probe');
+  const t0 = Date.now();
+  const r = await callRole(
+    sc,
+    'editor',
+    'voice_editor',
+    { text: 'We checked the setup.', profile: getSettings(c).voiceProfile, locks: [] },
+    { maxOutputTokens: 200 },
+  );
+  const row = one(
+    c.db,
+    'SELECT provider, model, state, actual_usd, input_tokens, output_tokens, cached_tokens, latency_ms, paid FROM spend WHERE run_id=? ORDER BY created_at DESC',
+    sc.run.id,
+  );
+  return {
+    mode: 'live',
+    provider: r.meta.provider,
+    model: r.meta.model,
+    paid: r.meta.paid,
+    latencyMs: row?.latency_ms ?? Date.now() - t0,
+    inputTokens: row?.input_tokens ?? null,
+    outputTokens: row?.output_tokens ?? null,
+    costUsd: row?.actual_usd ?? null,
+    state: row?.state ?? null,
+  };
+}

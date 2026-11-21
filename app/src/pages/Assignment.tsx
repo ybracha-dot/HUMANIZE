@@ -592,6 +592,7 @@ export default function Assignment() {
           {side === 'review' && documentId && (
             <RunPanel
               documentId={documentId}
+              assignmentId={id}
               onFinished={() => {
                 reloadAll();
                 setSide('queue');

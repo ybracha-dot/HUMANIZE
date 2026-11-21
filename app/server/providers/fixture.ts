@@ -12,14 +12,15 @@ import type { Lock, Para, RawProposal } from '../../shared/proposals.ts';
 export const FIXTURE_ID = 'fixture:rules/1';
 
 const UP = /^(rais\w+|improv\w+|boost\w*|increas\w+|enhanc\w+)$/i;
-const DOWN = /^(reduc\w+|lower\w*|decreas\w+|cut|cuts)$/i;
+const DOWN = /^(reduc\w+|lower(?:s|ed|ing)|decreas\w+|cut|cuts)$/i;
 
 const lowerFirst = (s: string) => (s ? s[0].toLowerCase() + s.slice(1) : s);
 const stripEnd = (s: string) => s.trim().replace(/[.!?]+$/, '');
 
 /** Rewrite "A raised B" as "A was associated with higher B" and add the source's design limitation. Returns null if the sentence shape is not recognised. */
 export function associationRewrite(claim: string, passageText: string, objection?: string | null): string | null {
-  const m = /^(.{3,80}?)\s+(rais\w+|improv\w+|boost\w*|increas\w+|enhanc\w+|reduc\w+|lower\w*|decreas\w+)\s+(.{3,120}?)([.!?]?)$/i.exec(claim.trim());
+  if (/\b(?:associated|correlated|linked) with\b/i.test(claim)) return null; // already an association: nothing to soften
+  const m = /^(.{3,80}?)\s+(rais\w+|improv\w+|boost\w*|increas\w+|enhanc\w+|reduc\w+|lower(?:s|ed|ing)|decreas\w+)\s+(.{3,120}?)([.!?]?)$/i.exec(claim.trim());
   let head: string | null = null;
   if (m && (UP.test(m[2]) || DOWN.test(m[2]))) head = `${m[1]} was associated with ${UP.test(m[2]) ? 'higher' : 'lower'} ${stripEnd(m[3])}.`;
   else {
@@ -34,8 +35,14 @@ export function associationRewrite(claim: string, passageText: string, objection
 
 /** The design limitation a reader needs, built from the source's own wording and the writer's stated objection. */
 export function limitationSentence(passageText: string, objection?: string | null): string {
-  const cue = splitSentences(passageText).find((s) => /chose whether|self[- ]select|volunt|opt(?:ed)? in|their own choice|not randomly/i.test(s.text));
-  const cueClause = cue ? lowerFirst(stripEnd(cue.text)) : null;
+  const cue = splitSentences(passageText).find((s) =>
+    /chose whether|self[- ]select|volunt|opt(?:ed)? in|their own choice|not randomly|not (?:assigned )?at random/i.test(s.text),
+  );
+  const CUE = /chose whether|self[- ]select|volunt\w+|opt(?:ed)? in|their own choice|not randomly|not (?:assigned )?at random/i;
+  // quote the clause that carries the design cue, not a whole run-on sentence
+  const cueClause = cue
+    ? lowerFirst(stripEnd((cue.text.split(/[:;,]\s+/).find((part) => CUE.test(part)) ?? cue.text).replace(/^(?:and|but|so|while|whereas)\s+/i, '')))
+    : null;
   const confound = objection ? stripEnd(objection) : 'other differences between the groups could explain the gap';
   return cueClause
     ? `Because ${cueClause}, this shows an association rather than an effect: ${lowerFirst(confound)}.`
@@ -46,8 +53,11 @@ export function limitationSentence(passageText: string, objection?: string | nul
 function designCue(passages: IndexedPassage[], hit: IndexedPassage): IndexedPassage | null {
   const key = (id: string) => id.replace(/_p\d+$/, '');
   return (
-    passages.find((x) => key(x.id) === key(hit.id) && /chose whether|self[- ]select|volunt\w+|opt(?:ed)? in|their own choice|not randomly/i.test(x.text)) ??
-    null
+    passages.find(
+      (x) =>
+        key(x.id) === key(hit.id) &&
+        /chose whether|self[- ]select|volunt\w+|opt(?:ed)? in|their own choice|not randomly|not (?:assigned )?at random/i.test(x.text),
+    ) ?? null
   );
 }
 

@@ -19,7 +19,7 @@ import {
   type EvidencePassage,
 } from './store.ts';
 import { selectProviders, type ProviderSet } from './providers/index.ts';
-import { UncertainError, type CallResult, type Provider } from './providers/types.ts';
+import { UncertainError, type CallControl, type CallResult, type Provider } from './providers/types.ts';
 import { SCHEMAS, type Role } from './roles.ts';
 import { validateProposal, type Lock, type Para, type RawProposal, type Proposal } from '../shared/proposals.ts';
 import { verifyParagraph, mergeVerdicts, type ClaimVerdict } from '../shared/evidence.ts';
@@ -47,11 +47,11 @@ const OPTIONAL_STAGES = new Set(['critic_blind', 'critic_check', 'repair', 'veri
 export const isOptionalStage = (name: string) => OPTIONAL_STAGES.has(name);
 
 // ---- provider dispatch with spend control ---------------------------------------------------
-async function dispatch(sc: StageCtx, provider: Provider, role: Role, input: any): Promise<CallResult> {
+async function dispatch(sc: StageCtx, provider: Provider, role: Role, input: any, ctl?: CallControl): Promise<CallResult> {
   const settings = getSettings(sc.c);
   const assignment = own(sc.db, 'assignments', sc.run.assignment_id, sc.c.ws);
   if (!provider.paid) {
-    const res = await provider.call(role, input);
+    const res = await provider.call(role, input, ctl);
     recordFree(sc.db, {
       ws: sc.c.ws,
       assignmentId: sc.run.assignment_id,
@@ -70,7 +70,7 @@ async function dispatch(sc: StageCtx, provider: Provider, role: Role, input: any
       'price_unconfigured',
       `No price is configured for ${provider.id}. Add input/output prices in Settings before using this provider; unknown prices are never assumed.`,
     );
-  const est = provider.estimate(role, input);
+  const est = provider.estimate(role, input, ctl);
   const upper =
     costOf(price, {
       inputTokens: est.inputTokens,
@@ -90,7 +90,7 @@ async function dispatch(sc: StageCtx, provider: Provider, role: Role, input: any
   });
   await sc.fault('after_reserve');
   try {
-    const res = await provider.call(role, input);
+    const res = await provider.call(role, input, ctl);
     settle(sc.db, rid, {
       actualUsd: costOf(price, res.usage),
       inputTokens: res.usage.inputTokens,
@@ -112,6 +112,7 @@ export async function callRole(
   which: 'editor' | 'critic' | 'verifier',
   role: Role,
   input: any,
+  ctl?: CallControl,
 ): Promise<{
   output: any;
   meta: { provider: string; vendor: string; model: string; paid: boolean };
@@ -119,7 +120,7 @@ export async function callRole(
   const provider = sc.providers[which];
   let current = input;
   for (let pass = 0; pass < 2; pass++) {
-    const res = await dispatch(sc, provider, role, current);
+    const res = await dispatch(sc, provider, role, current, ctl);
     const parsed = SCHEMAS[role].safeParse(res.output);
     if (parsed.success)
       return {

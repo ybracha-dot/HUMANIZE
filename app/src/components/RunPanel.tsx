@@ -21,10 +21,12 @@ const MODES = [
   },
 ] as const;
 
-export function RunPanel({ documentId, onFinished, flushSave }: { documentId: string; onFinished: () => void; flushSave: () => Promise<void> }) {
+export function RunPanel({ documentId, assignmentId, onFinished, flushSave }: { documentId: string; assignmentId: string; onFinished: () => void; flushSave: () => Promise<void> }) {
   const [mode, setMode] = useState<'quick' | 'evidence' | 'deep'>('quick');
   const [err, setErr] = useState<unknown>(null);
   const [starting, setStarting] = useState(false);
+  const [probe, setProbe] = useState<any>(null);
+  const settings = useAsync(() => get('/settings'), []);
   const est = useAsync(() => post(`/documents/${documentId}/runs/estimate`, { mode }), [documentId, mode]);
   const runs = useAsync(() => get(`/documents/${documentId}/runs`), [documentId]);
   const active = (runs.data ?? []).some((r: any) => ['queued', 'running', 'paused'].includes(r.status));
@@ -103,6 +105,30 @@ export function RunPanel({ documentId, onFinished, flushSave }: { documentId: st
       <button className="btn btn-primary mt-3" onClick={start} disabled={starting || !!e?.error} data-testid="start-review">
         <Search size={14} /> Start {MODES.find((m) => m.id === mode)!.title.toLowerCase()}
       </button>
+      {settings.data?.mode === 'live' && (
+        <div className="card mt-3 p-3 text-sm" data-testid="probe-box">
+          <button
+            className="btn"
+            data-testid="probe"
+            onClick={async () => {
+              setErr(null);
+              setProbe(null);
+              try {
+                setProbe(await post(`/assignments/${assignmentId}/probe`));
+              } catch (e) {
+                setErr(e);
+              }
+            }}
+          >
+            Send one small test request
+          </button>
+          {probe && (
+            <p className="mt-2" data-testid="probe-result">
+              Live: <code>{probe.provider}</code> answered in {probe.latencyMs} ms, {probe.inputTokens} in / {probe.outputTokens} out tokens, cost ${Number(probe.costUsd ?? 0).toFixed(6)}.
+            </p>
+          )}
+        </div>
+      )}
       <div className="mt-2">
         <ErrorNote error={err} />
       </div>

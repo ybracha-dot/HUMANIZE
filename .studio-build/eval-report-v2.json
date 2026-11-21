@@ -523,8 +523,8 @@
             "claim_not_found": 0
           },
           "contradicted": {
-            "supported": 0,
-            "partial": 1,
+            "supported": 1,
+            "partial": 0,
             "contradicted": 7,
             "insufficient": 1,
             "unreadable": 0,
@@ -549,10 +549,11 @@
         },
         "genuinelyUnsupported": 16,
         "unsafeApprovals": {
-          "count": 1,
+          "count": 2,
           "outOf": 16,
           "items": [
-            "U5/Capital expenditures will be $15 million"
+            "U5/Capital expenditures will be $15 million",
+            "U7/Drivers reported lower stress than cycli"
           ]
         },
         "supportedClaims": 13,
@@ -572,12 +573,11 @@
         },
         "unsupportedButWrongKind": {
           "outOf": 16,
-          "count": 5,
+          "count": 4,
           "items": [
             "U1/Resting heart rate fell by 3 beats per m: expected partial, said contradicted",
             "U3/ההשתתפות הקבועה גרמה לעלייה בציונים.: expected partial, said insufficient",
             "U5/Net sales increased because of higher pr: expected insufficient, said partial",
-            "U7/Drivers reported lower stress than cycli: expected contradicted, said partial",
             "U8/60% of surveyed households had broadband: expected contradicted, said insufficient"
           ]
         },
@@ -610,8 +610,8 @@
             "claim_not_found": 0
           },
           "contradicted": {
-            "supported": 0,
-            "partial": 1,
+            "supported": 1,
+            "partial": 0,
             "contradicted": 7,
             "insufficient": 1,
             "unreadable": 0,
@@ -636,10 +636,11 @@
         },
         "genuinelyUnsupported": 16,
         "unsafeApprovals": {
-          "count": 1,
+          "count": 2,
           "outOf": 16,
           "items": [
-            "U5/Capital expenditures will be $15 million"
+            "U5/Capital expenditures will be $15 million",
+            "U7/Drivers reported lower stress than cycli"
           ]
         },
         "supportedClaims": 13,
@@ -658,11 +659,10 @@
         },
         "unsupportedButWrongKind": {
           "outOf": 16,
-          "count": 4,
+          "count": 3,
           "items": [
             "U3/ההשתתפות הקבועה גרמה לעלייה בציונים.: expected partial, said insufficient",
             "U5/Net sales increased because of higher pr: expected insufficient, said partial",
-            "U7/Drivers reported lower stress than cycli: expected contradicted, said partial",
             "U8/60% of surveyed households had broadband: expected contradicted, said insufficient"
           ]
         },
@@ -720,8 +720,8 @@
           "id": "U7/Drivers reported lower stress than cycli",
           "tag": "direction",
           "expected": "contradicted",
-          "predicted": "partial",
-          "reason": "The passage covers about 50% of the claim's terms; the rest is not supported there."
+          "predicted": "supported",
+          "reason": "Terms, figures and direction match the passage."
         },
         {
           "id": "U8/45% of surveyed households had broadband",

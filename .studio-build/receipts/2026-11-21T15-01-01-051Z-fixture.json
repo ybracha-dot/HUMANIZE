@@ -1,0 +1,181 @@
+{
+  "generatedAt": "2026-11-21T15:01:01.049Z",
+  "mode": "fixture",
+  "modeLabel": "fixture (deterministic rules, not a model)",
+  "uiBadge": "Demo mode: fixture rules, no key",
+  "assignment": "Assignment 3: Trees and city heat (synthetic; reading: 3-page PDF, printed labels v-vii)",
+  "providers": {
+    "ids": [
+      "fixture:rules/1"
+    ],
+    "independentReviewer": false,
+    "independence": "Demo mode: every stage is the same deterministic local rule engine (fixture). It is not an independent model and no key was used."
+  },
+  "models": [
+    "rules/1"
+  ],
+  "probe": null,
+  "calls": [
+    {
+      "provider": "fixture:rules/1",
+      "model": "rules/1",
+      "state": "settled",
+      "paid": false,
+      "latencyMs": 4,
+      "inputTokens": null,
+      "outputTokens": null,
+      "costUsd": 0,
+      "stage": "thesis"
+    },
+    {
+      "provider": "fixture:rules/1",
+      "model": "rules/1",
+      "state": "settled",
+      "paid": false,
+      "latencyMs": 1,
+      "inputTokens": null,
+      "outputTokens": null,
+      "costUsd": 0,
+      "stage": "outline"
+    },
+    {
+      "provider": "fixture:rules/1",
+      "model": "rules/1",
+      "state": "settled",
+      "paid": false,
+      "latencyMs": 0,
+      "inputTokens": null,
+      "outputTokens": null,
+      "costUsd": 0,
+      "stage": "draft"
+    },
+    {
+      "provider": "fixture:rules/1",
+      "model": "rules/1",
+      "state": "settled",
+      "paid": false,
+      "latencyMs": 0,
+      "inputTokens": null,
+      "outputTokens": null,
+      "costUsd": 0,
+      "stage": "draft"
+    },
+    {
+      "provider": "fixture:rules/1",
+      "model": "rules/1",
+      "state": "settled",
+      "paid": false,
+      "latencyMs": 0,
+      "inputTokens": null,
+      "outputTokens": null,
+      "costUsd": 0,
+      "stage": "draft"
+    },
+    {
+      "provider": "fixture:rules/1",
+      "model": "rules/1",
+      "state": "settled",
+      "paid": false,
+      "latencyMs": 0,
+      "inputTokens": null,
+      "outputTokens": null,
+      "costUsd": 0,
+      "stage": "draft"
+    },
+    {
+      "provider": "fixture:rules/1",
+      "model": "rules/1",
+      "state": "settled",
+      "paid": false,
+      "latencyMs": 32,
+      "inputTokens": null,
+      "outputTokens": null,
+      "costUsd": 0,
+      "stage": "queued stage"
+    },
+    {
+      "provider": "fixture:rules/1",
+      "model": "rules/1",
+      "state": "settled",
+      "paid": false,
+      "latencyMs": 4,
+      "inputTokens": null,
+      "outputTokens": null,
+      "costUsd": 0,
+      "stage": "queued stage"
+    },
+    {
+      "provider": "fixture:rules/1",
+      "model": "rules/1",
+      "state": "settled",
+      "paid": false,
+      "latencyMs": 3,
+      "inputTokens": null,
+      "outputTokens": null,
+      "costUsd": 0,
+      "stage": "queued stage"
+    },
+    {
+      "provider": "fixture:rules/1",
+      "model": "rules/1",
+      "state": "settled",
+      "paid": false,
+      "latencyMs": 18,
+      "inputTokens": null,
+      "outputTokens": null,
+      "costUsd": 0,
+      "stage": "queued stage"
+    }
+  ],
+  "totals": {
+    "calls": 10,
+    "paidCalls": 0,
+    "settledUsd": 0,
+    "uncertainUsd": 0,
+    "wallClockSeconds": 11
+  },
+  "runs": [
+    {
+      "mode": "evidence",
+      "status": "done",
+      "degraded": [],
+      "critic": null,
+      "error": null
+    },
+    {
+      "mode": "deep",
+      "status": "done",
+      "degraded": [],
+      "critic": "fixture:rules/1",
+      "error": null
+    }
+  ],
+  "estimateShownBeforeRun": "Affects about 139 words in 4 paragraphs. Cost: free (deterministic fixture engine, no key) assignment check · code argument edit · fixture critic blind · fixture critic check · fixture repair · fixture verify final · fixture finalize · code Demo mode: every stage is the same deterministic local rule",
+  "revision": {
+    "studentSentence": "Tree canopy reduced afternoon surface temperatures.",
+    "suggestion": "Tree canopy was associated with lower afternoon surface temperatures. This comparison shows an association rather than an effect: richer neighborhoods may just have other cooling features.",
+    "acceptedParagraph": "Tree canopy was associated with lower afternoon surface temperatures. This comparison shows an association rather than an effect: richer neighborhoods may just have other cooling features.",
+    "badges": "Overstated cause | Use of evidence | fixture (rules, not a model) | your decision",
+    "cardExcerpt": "Overstated cause Use of evidence fixture (rules, not a model) your decision \"reduced afternoon\" claims a cause. \"reduced afternoon\" asserts causation, but the passage describes a comparison where participants chose their own group. It supports an association, not a cause. NOWTree canopy reduced afternoon surface temperatures. SUGGESTEDTree canopy was associated with lower afternoon surface tempera"
+  },
+  "sourcePassage": {
+    "heading": "Viewer page 2 · printed page vi",
+    "highlighted": "Blocks with 30% or more canopy averaged 2.1 degrees C cooler afternoon surface temperatures than blocks with under 10% canopy."
+  },
+  "suggestionSupportedBySource": {
+    "verdict": "supported",
+    "engine": "deterministic-revised/2",
+    "reasons": [
+      "Terms, figures and direction match the passage."
+    ],
+    "passageId": "src_2_p02",
+    "quote": "Blocks with 30% or more canopy averaged 2.1 degrees C cooler afternoon surface temperatures\nthan blocks with under 10% canopy."
+  },
+  "export": {
+    "words": 158,
+    "sha256": "c238de795ed8161f60025ede4c83f62f099b6d5b4ec069515a41812891ae1c67",
+    "hashShownInApp": "c238de795ed8161f…",
+    "identicalToApproved": true
+  },
+  "browserErrors": []
+}

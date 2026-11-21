@@ -23,7 +23,7 @@ export interface Provider {
   paid: boolean;
   call(role: Role, input: any, ctl?: CallControl): Promise<CallResult>;
   /** rough upper bound used before dispatch */
-  estimate(role: Role, input: any): { inputTokens: number; outputTokens: number };
+  estimate(role: Role, input: any, ctl?: CallControl): { inputTokens: number; outputTokens: number };
 }
 
 /** Error whose outcome at the provider is unknown (timeout after send). The caller marks spend 'uncertain'. */

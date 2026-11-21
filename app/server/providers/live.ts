@@ -65,11 +65,11 @@ export class AnthropicProvider implements Provider {
   get id() {
     return `anthropic:${this.model}`;
   }
-  estimate(role: Role, input: any) {
+  estimate(role: Role, input: any, ctl?: CallControl) {
     const p = buildPrompt(role, input);
     return {
       inputTokens: estimateTokens(p.system + p.user),
-      outputTokens: this.maxOut,
+      outputTokens: ctl?.maxOutputTokens ?? this.maxOut,
     };
   }
   async call(role: Role, input: any, ctl: CallControl = {}): Promise<CallResult> {
@@ -122,11 +122,11 @@ export class OpenAIProvider implements Provider {
   get id() {
     return `openai:${this.model}`;
   }
-  estimate(role: Role, input: any) {
+  estimate(role: Role, input: any, ctl?: CallControl) {
     const p = buildPrompt(role, input);
     return {
       inputTokens: estimateTokens(p.system + p.user),
-      outputTokens: this.maxOut,
+      outputTokens: ctl?.maxOutputTokens ?? this.maxOut,
     };
   }
   async call(role: Role, input: any, ctl: CallControl = {}): Promise<CallResult> {

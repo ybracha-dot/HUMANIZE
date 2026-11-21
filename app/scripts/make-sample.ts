@@ -26,3 +26,13 @@ const bytes = await makePdf(pages, {
 });
 fs.writeFileSync(new URL('../fixtures/sample/reading-attendance.pdf', import.meta.url), bytes);
 console.log('wrote reading-attendance.pdf', bytes.length, 'bytes');
+
+// Second, different reading used by the fresh-assignment run (different domain; printed labels are roman numerals v-vii).
+const canopy = [
+  { heading: 'Street Trees and Afternoon Heat: A Neighborhood Comparison', lines: wrap('A survey of surface temperatures in 40 city neighborhoods compared city blocks by tree canopy cover on July afternoons. Temperatures were taken from satellite imagery on clear days.') },
+  { lines: wrap('Blocks with 30% or more canopy averaged 2.1 degrees C cooler afternoon surface temperatures than blocks with under 10% canopy. Trees had been planted unevenly: neighborhoods with higher incomes already had more canopy and more parks, and canopy was not assigned at random.') },
+  { lines: wrap('The authors note that pavement share, building height and distance to water also differed between neighborhoods. A planting program began in 2021 and no post-planting measurements were taken.') },
+];
+const cb = await makePdf(canopy, { title: 'Street Trees and Afternoon Heat (synthetic reading)', labels: [{ startIndex: 0, style: 'r', start: 5 }] });
+fs.writeFileSync(new URL('../fixtures/fresh/reading-canopy.pdf', import.meta.url), cb);
+console.log('wrote reading-canopy.pdf', cb.length, 'bytes');

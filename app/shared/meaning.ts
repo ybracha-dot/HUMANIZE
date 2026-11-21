@@ -213,7 +213,7 @@ export function periodOf(text: string): string | null {
 const STRONG_CAUSAL =
   /\b(causes?|caused|causing|leads? to|led to|leading to|results? in|resulted in|because of|due to|owing to|thanks to|as a result of|effect of|effects of|impact of|impact on|drives?|drove|driven by|produces?|produced|responsible for)\b/i;
 const AGENTIVE =
-  /\b(rais(?:e|es|ed|ing)|improv(?:e|es|ed|ing)|boost(?:s|ed|ing)?|increas(?:e|es|ed|ing)|reduc(?:e|es|ed|ing)|lower(?:s|ed|ing)?|enhanc(?:e|es|ed|ing)|rais(?:e|ed))\s+(?!by\b|from\b|to\b|in\b|after\b|when\b|during\b|over\b|between\b|across\b|for\b|above\b|below\b|slightly\b|sharply\b|modestly\b|significantly\b|steadily\b|again\b|further\b|\d)([a-z][\p{L}'-]*)/iu;
+  /\b(rais(?:e|es|ed|ing)|improv(?:e|es|ed|ing)|boost(?:s|ed|ing)?|increas(?:e|es|ed|ing)|reduc(?:e|es|ed|ing)|lower(?:s|ed|ing)|enhanc(?:e|es|ed|ing)|rais(?:e|ed))\s+(?!by\b|from\b|to\b|in\b|after\b|when\b|during\b|over\b|between\b|across\b|for\b|above\b|below\b|slightly\b|sharply\b|modestly\b|significantly\b|steadily\b|again\b|further\b|\d)([a-z][\p{L}'-]*)/iu;
 const ASSOC =
   /\b(associated with|correlat\w+|linked to|related to|tend(?:s|ed)? to|coincid\w+|accompan\w+|higher (?:among|for|in)|co-occur\w*|goes? along with)\b/i;
 export function causalMarker(text: string): string | null {

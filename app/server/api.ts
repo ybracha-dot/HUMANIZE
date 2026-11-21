@@ -486,6 +486,25 @@ export function buildApi(db: DB = getDb()) {
   });
   api.delete('/sources/:id', (c) => c.json(deleteSource(X(c), c.req.param('id'))));
   api.get('/passages/:id', (c) => c.json(S.getPassage(X(c), c.req.param('id'))));
+  api.post('/assignments/:id/probe', async (c) => c.json(await F.probeProvider(X(c), c.req.param('id'))));
+  api.get('/assignments/:id/spend', (c) => {
+    const x = X(c);
+    if (!own(db, 'assignments', c.req.param('id'), x.ws)) throw new S.HttpError(404, 'not_found', 'assignment not found');
+    const rows = all(
+      db,
+      'SELECT provider, model, state, paid, reserved_usd, actual_usd, input_tokens, output_tokens, cached_tokens, latency_ms, price_rev, run_id, stage_id, attempt, created_at FROM spend WHERE workspace_id=? AND assignment_id=? ORDER BY created_at, rowid',
+      x.ws,
+      c.req.param('id'),
+    );
+    const paid = rows.filter((r) => r.paid);
+    return c.json({
+      calls: rows.length,
+      paidCalls: paid.length,
+      settledUsd: paid.reduce((a, r) => a + (r.state === 'settled' ? (r.actual_usd ?? 0) : 0), 0),
+      uncertainUsd: paid.reduce((a, r) => a + (r.state === 'uncertain' ? r.reserved_usd : 0), 0),
+      rows,
+    });
+  });
   api.get('/assignments/:id/search', async (c) => c.json(await S.searchPassages(X(c), c.req.param('id'), c.req.query('q') ?? '')));
 
   // ---- assignment: brief, idea, outline, draft ------------------------------------------------

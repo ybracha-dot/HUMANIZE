@@ -84,6 +84,13 @@ describe('known unsafe approval found on the unseen split (desired behaviour; no
   });
 });
 
+describe('second known unsafe approval on the unseen split (role swap in a comparison; not yet met)', () => {
+  it.fails('"Drivers reported lower stress than cyclists" must not be approved when the passage says cyclists reported lower stress than drivers', () => {
+    const row = result.unseen.revised.find((r) => r.id.startsWith('U7/Drivers reported'))!;
+    expect(row.predicted).not.toBe('supported');
+  });
+});
+
 describe('measurement report', () => {
   it('writes the report with every denominator and pins the outcomes of this run', () => {
     const report: any = {
@@ -150,8 +157,9 @@ describe('measurement report', () => {
       29, 8, 16, 13,
     ]);
     expect([S.unseen.baseline.exact, S.unseen.revised.exact]).toEqual([18, 20]);
-    expect([S.unseen.baseline.unsafeApprovals.count, S.unseen.revised.unsafeApprovals.count]).toEqual([1, 1]);
-    expect(S.unseen.revised.unsafeApprovals.items).toEqual(['U5/Capital expenditures will be $15 million']);
+    // 1 -> 2 after the adjective-"lower" fix found by the fresh-assignment run: that bug had been flagging the swapped-roles claim as causal by accident.
+    expect([S.unseen.baseline.unsafeApprovals.count, S.unseen.revised.unsafeApprovals.count]).toEqual([2, 2]);
+    expect(S.unseen.revised.unsafeApprovals.items).toEqual(['U5/Capital expenditures will be $15 million', 'U7/Drivers reported lower stress than cycli']);
     expect([S.frozen22.baseline.unsafeApprovals.count, S.frozen22.revised.unsafeApprovals.count, S.dev2.revised.unsafeApprovals.count]).toEqual([0, 0, 0]);
     expect(S.unseen.missesRevised.map((m: any) => m.tag).sort()).toEqual([
       'cross_language',
