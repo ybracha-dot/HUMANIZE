@@ -216,7 +216,8 @@ a {
 }
 
 @layer components {
-  .card {
+  .card,
+  .panel {
     @apply rounded-md border border-rule bg-surface;
   }
   .btn {
@@ -260,4 +261,9 @@ a {
   overflow: hidden;
   clip: rect(0 0 0 0);
   white-space: nowrap;
+}
+
+/* Long unbroken strings (file names, URLs, pasted words) wrap instead of forcing sideways scroll. */
+#stage {
+  overflow-wrap: anywhere;
 }

@@ -212,6 +212,23 @@ export function Intake({
                       </label>
                     ))}
                   {e.hint && <span className="text-ink2">{e.hint}</span>}
+                  {e.result && (
+                    <label className="link" data-testid="intake-replace">
+                      Choose another file
+                      <input
+                        type="file"
+                        className="sr-only"
+                        accept=".pdf,.docx,.txt,.md,.markdown,application/pdf"
+                        aria-label={`Choose another file instead of ${e.name}`}
+                        data-testid="intake-replace-input"
+                        onChange={(ev) => {
+                          const f = ev.target.files?.[0];
+                          if (f) patch(e.key, { file: f, name: f.name, result: undefined });
+                          ev.target.value = '';
+                        }}
+                      />
+                    </label>
+                  )}
                 </div>
               )}
               {e.result && (

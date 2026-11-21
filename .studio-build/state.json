@@ -1,6 +1,6 @@
 {
   "status": "complete",
-  "milestone": "M7",
+  "milestone": "UX redesign",
   "evidence": [
     "M0: app scaffolded (Vite/React/TS/Tailwind, Hono API, node:sqlite); sample assignment fixtures generated; npm run typecheck and npm test pass",
     "M1: PDF/MD/TXT/DOCX ingest with printed page labels distinct from viewer index; brief items carry exact source quotes and conflicts; unreadable and scanned files fail per file with remedy (integration test passed)",
@@ -14,9 +14,10 @@
     "M4: StoryScope manifest built from the real upstream taxonomy (304/304 features, 10 dimensions, MIT, commit b82d935); 6 features linked to 4 editorial checks each with flag/keep examples; direction of association recorded as 'unknown' because arxiv.org is unreachable from this environment",
     "M4: same idea in two registers keeps $3M, citation, quote, hedge, period and statistical qualifier; Spanish text untouched by English rules; hygiene keeps emoji joiner and Hebrew marks; feedback memory scoped per course and only confirmed 'recurring'; one rejection creates no rule",
     "M4: skill state: humanizer vendored (MIT) and writing-studio-hygiene authored under skills/; personal ~/.claude activation NOT performed (cloud container); upstream clean-user-facing-text reviewed and deliberately not installed (detector-score workflow); exact activation steps in skills/ACTIVATION.md",
-    "M7: final run on clean install: typecheck clean; 92 vitest tests passed (10s); Chromium smoke passed (11.7s); autotype npm test, browser_recovery.py and test_supervisor.py passed; fresh npm ci + npm start works with no keys; README, docs/EXTENSION.md, docs/PILOT.md, skills/ACTIVATION.md delivered"
+    "M7: final run on clean install: typecheck clean; 92 vitest tests passed (10s); Chromium smoke passed (11.7s); autotype npm test, browser_recovery.py and test_supervisor.py passed; fresh npm ci + npm start works with no keys; README, docs/EXTENSION.md, docs/PILOT.md, skills/ACTIVATION.md delivered",
+    "Redesign: five stages with URLs; typecheck clean; 145 vitest passed; three Chromium journeys passed (new assignment paste->brief; sample conflict resolve + reload; full paper plan->draft->review->export; draft-first, mixed upload, theme, keyboard, 320px); before/after screenshots in docs/redesign"
   ],
-  "next": "Personal acceptance path verified in fixture mode. Remaining items are environment-dependent: live provider run, Mac soak, hosted Supabase wiring, skill activation (see README).",
+  "next": "Run the five-student pilot (docs/PILOT.md); live provider run still needs credentials",
   "blockers": [],
   "verification": [
     {
@@ -43,6 +44,11 @@
       "command": "npm run typecheck && npx vitest run && npm run test:smoke",
       "outcome": "passed",
       "scope": "fixture mode + local mock + PGlite, Linux, Chromium 1243"
+    },
+    {
+      "command": "npm run typecheck && npm test && npm run test:smoke",
+      "outcome": "passed",
+      "scope": "fixture mode, Chromium on Linux"
     }
   ]
 }

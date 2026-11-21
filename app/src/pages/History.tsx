@@ -47,7 +47,7 @@ export default function History() {
   const label = (r: any) => `${new Date(r.created_at).toLocaleString()} · ${r.cause}${r.label ? ' · ' + r.label : ''} · ${branches[r.branch_id] ?? ''}`;
   return (
     <div className="mx-auto max-w-5xl p-6">
-      <Link to={`/assignments/${doc.data?.document.assignmentId ?? ''}`} className="btn btn-quiet mb-3 px-2">
+      <Link to={`/assignments/${doc.data?.document.assignmentId ?? ''}/draft`} className="btn btn-quiet mb-3 px-2" data-testid="back-to-draft">
         <ArrowLeft size={16} /> Back to the draft
       </Link>
       <h1 className="mb-1 text-2xl font-semibold">History</h1>

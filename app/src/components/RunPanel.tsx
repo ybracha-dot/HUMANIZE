@@ -25,11 +25,13 @@ export function RunPanel({
   documentId,
   assignmentId,
   onFinished,
+  onStarted,
   flushSave,
 }: {
   documentId: string;
   assignmentId: string;
   onFinished: () => void;
+  onStarted?: () => void;
   flushSave: () => Promise<void>;
 }) {
   const [mode, setMode] = useState<'quick' | 'evidence' | 'deep'>('quick');
@@ -65,6 +67,7 @@ export function RunPanel({
         idempotencyKey: newKey('run'),
       });
       runs.reload();
+      onStarted?.();
     } catch (e) {
       setErr(e);
     } finally {

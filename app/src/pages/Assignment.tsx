@@ -153,7 +153,14 @@ export default function Assignment() {
         <div className="md:sticky md:top-0 md:z-30">
           <Stepper current={current} facts={o.facts} onGo={go} />
         </div>
-        <main id="stage" aria-label={`${STAGE_LABEL[current]}, step ${idx + 1} of 5`} data-testid="stage" data-stage={current}>
+        <main
+          id="stage"
+          tabIndex={-1}
+          className="outline-none"
+          aria-label={`${STAGE_LABEL[current]}, step ${idx + 1} of 5`}
+          data-testid="stage"
+          data-stage={current}
+        >
           {!available ? (
             <Locked stage={current} facts={o.facts} go={go} />
           ) : current === 'materials' ? (

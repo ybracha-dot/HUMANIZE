@@ -1,0 +1,214 @@
+{
+  "generatedAt": "2026-11-21T16:39:13.002Z",
+  "mode": "mock-live",
+  "modeLabel": "MOCK of the live code path (local HTTP stand-in, NOT a provider)",
+  "uiBadge": "Live AI feedback",
+  "assignment": "Assignment 3: Trees and city heat (synthetic; reading: 3-page PDF, printed labels v-vii)",
+  "providers": {
+    "ids": [
+      "anthropic:mock-model"
+    ],
+    "independentReviewer": false,
+    "independence": "Single provider (anthropic:mock-model): the reviewer is a second pass by the same model, not an independent check."
+  },
+  "models": [
+    "mock-model"
+  ],
+  "probe": {
+    "mode": "live",
+    "provider": "anthropic:mock-model",
+    "model": "mock-model",
+    "paid": true,
+    "latencyMs": 46,
+    "inputTokens": 1500,
+    "outputTokens": 250,
+    "costUsd": 0.00825,
+    "state": "settled"
+  },
+  "calls": [
+    {
+      "provider": "anthropic:mock-model",
+      "model": "mock-model",
+      "state": "settled",
+      "paid": true,
+      "latencyMs": 46,
+      "inputTokens": 1500,
+      "outputTokens": 250,
+      "costUsd": 0.00825,
+      "stage": "probe"
+    },
+    {
+      "provider": "anthropic:mock-model",
+      "model": "mock-model",
+      "state": "settled",
+      "paid": true,
+      "latencyMs": 33,
+      "inputTokens": 1500,
+      "outputTokens": 250,
+      "costUsd": 0.00825,
+      "stage": "thesis"
+    },
+    {
+      "provider": "anthropic:mock-model",
+      "model": "mock-model",
+      "state": "settled",
+      "paid": true,
+      "latencyMs": 35,
+      "inputTokens": 1500,
+      "outputTokens": 250,
+      "costUsd": 0.00825,
+      "stage": "outline"
+    },
+    {
+      "provider": "anthropic:mock-model",
+      "model": "mock-model",
+      "state": "settled",
+      "paid": true,
+      "latencyMs": 33,
+      "inputTokens": 1500,
+      "outputTokens": 250,
+      "costUsd": 0.00825,
+      "stage": "draft"
+    },
+    {
+      "provider": "anthropic:mock-model",
+      "model": "mock-model",
+      "state": "settled",
+      "paid": true,
+      "latencyMs": 34,
+      "inputTokens": 1500,
+      "outputTokens": 250,
+      "costUsd": 0.00825,
+      "stage": "draft"
+    },
+    {
+      "provider": "anthropic:mock-model",
+      "model": "mock-model",
+      "state": "settled",
+      "paid": true,
+      "latencyMs": 34,
+      "inputTokens": 1500,
+      "outputTokens": 250,
+      "costUsd": 0.00825,
+      "stage": "draft"
+    },
+    {
+      "provider": "anthropic:mock-model",
+      "model": "mock-model",
+      "state": "settled",
+      "paid": true,
+      "latencyMs": 33,
+      "inputTokens": 1500,
+      "outputTokens": 250,
+      "costUsd": 0.00825,
+      "stage": "draft"
+    },
+    {
+      "provider": "anthropic:mock-model",
+      "model": "mock-model",
+      "state": "settled",
+      "paid": true,
+      "latencyMs": 63,
+      "inputTokens": 1500,
+      "outputTokens": 250,
+      "costUsd": 0.00825,
+      "stage": "queued stage"
+    },
+    {
+      "provider": "anthropic:mock-model",
+      "model": "mock-model",
+      "state": "settled",
+      "paid": true,
+      "latencyMs": 36,
+      "inputTokens": 1500,
+      "outputTokens": 250,
+      "costUsd": 0.00825,
+      "stage": "queued stage"
+    },
+    {
+      "provider": "anthropic:mock-model",
+      "model": "mock-model",
+      "state": "settled",
+      "paid": true,
+      "latencyMs": 34,
+      "inputTokens": 1500,
+      "outputTokens": 250,
+      "costUsd": 0.00825,
+      "stage": "queued stage"
+    },
+    {
+      "provider": "anthropic:mock-model",
+      "model": "mock-model",
+      "state": "settled",
+      "paid": true,
+      "latencyMs": 34,
+      "inputTokens": 1500,
+      "outputTokens": 250,
+      "costUsd": 0.00825,
+      "stage": "queued stage"
+    },
+    {
+      "provider": "anthropic:mock-model",
+      "model": "mock-model",
+      "state": "settled",
+      "paid": true,
+      "latencyMs": 34,
+      "inputTokens": 1500,
+      "outputTokens": 250,
+      "costUsd": 0.00825,
+      "stage": "queued stage"
+    }
+  ],
+  "totals": {
+    "calls": 12,
+    "paidCalls": 12,
+    "settledUsd": 0.09900000000000003,
+    "uncertainUsd": 0,
+    "wallClockSeconds": 12
+  },
+  "runs": [
+    {
+      "mode": "evidence",
+      "status": "done",
+      "degraded": [],
+      "critic": null,
+      "error": null
+    },
+    {
+      "mode": "deep",
+      "status": "done",
+      "degraded": [],
+      "critic": "anthropic:mock-model",
+      "error": null
+    }
+  ],
+  "estimateShownBeforeRun": "Affects about 24 words in 4 paragraphs. Cost: up to $0.1903 (estimated upper bound) assignment check · code argument edit · anthropic:mock-model critic blind · anthropic:mock-model critic check · anthropic:mock-model repair · anthropic:mock-model verify final · anthropic:mock-model finalize · code S",
+  "revision": {
+    "studentSentence": "Tree canopy reduced afternoon surface temperatures.",
+    "suggestion": "Blocks with more tree canopy had cooler afternoon surface temperatures, but the comparison cannot show that the trees caused the difference.",
+    "acceptedParagraph": "Blocks with more tree canopy had cooler afternoon surface temperatures, but the comparison cannot show that the trees caused the difference.",
+    "badges": "Live AI feedback",
+    "cardExcerpt": "Recommendation 1 of 1 View all Overstated cause The reading compares neighborhoods that were not assigned trees at random. NowTree canopy reduced afternoon surface temperatures. SuggestedBlocks with more tree canopy had cooler afternoon surface temperatures, but the comparison cannot show that the trees caused the difference. This could change your meaning. The rewrite introduces a negation. Keep "
+  },
+  "sourcePassage": {
+    "heading": "PDF viewer page 1 · printed page v",
+    "highlighted": "A survey of surface temperatures in 40 city neighborhoods compared city blocks by tree canopy cover on July afternoons."
+  },
+  "suggestionSupportedBySource": {
+    "verdict": "supported",
+    "engine": "deterministic-revised/2+anthropic:mock-model",
+    "reasons": [
+      "Terms, figures and direction match the passage.",
+      "mock"
+    ],
+    "passageId": "src_2_p02",
+    "quote": "Blocks with 30% or more canopy averaged 2.1 degrees C cooler afternoon surface temperatures\nthan blocks with under 10% canopy."
+  },
+  "export": {
+    "words": 39,
+    "sha256": "055dcb805a3ca61872cee9c466bf90d1527a69e8407630fcb709968fda6d6263",
+    "hashShownInApp": "055dcb805a3ca61872cee9c466bf90d1527a69e8407630fcb709968fda6d6263",
+    "identicalToApproved": true
+  },
+  "browserErrors": []
+}

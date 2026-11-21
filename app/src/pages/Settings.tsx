@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { ArrowLeft } from 'lucide-react';
 import { del, get, post, put } from '@/lib/api';
 import { ErrorNote, Section, Spinner, cx, useAsync } from '@/lib/ui';
+import { ThemeControl } from '@/lib/theme';
 
 export default function Settings() {
   const s = useAsync(() => get('/settings'), []);
@@ -51,6 +52,13 @@ export default function Settings() {
           {msg}
         </p>
       )}
+
+      <Section title="Appearance">
+        <div className="card p-4 text-sm">
+          <p className="mb-2 text-ink2">Light is the default, even if your computer is set to dark. Choose System to follow your computer.</p>
+          <ThemeControl />
+        </div>
+      </Section>
 
       <Section title="Mode and providers">
         <div className="card space-y-3 p-4 text-sm">

@@ -83,57 +83,52 @@ try {
     await page.goto(base + '/');
   }
 
-  // ---- course, assignment, uploads (the student's path) ------------------------------------------
+  // ---- course, assignment (the student's path) ---------------------------------------------------
   await page.getByLabel('New course name').fill('ENV 210: Urban Environments (synthetic)');
   await page.getByRole('button', { name: 'Add', exact: true }).click();
   await page.waitForURL(/\/courses\//);
   await page.getByLabel('New assignment title').fill('Assignment 3: Trees and city heat');
   await page.getByLabel('Genre').selectOption('academic_argument');
   await page.getByRole('button', { name: 'Add', exact: true }).click();
-  await page.getByRole('link', { name: 'Assignment 3: Trees and city heat' }).waitFor();
-  const upload = async (kind, file, title, date) => {
-    await page.getByTestId('source-kind').selectOption(kind);
-    await page.getByLabel('Title (optional)').fill(title);
-    await page.getByLabel('Document date (optional)').fill(date ?? '');
-    await page.getByTestId('file-input').setInputFiles(path.join(root, 'fixtures/fresh', file));
-    await page.getByTestId('upload-go').click();
-    await page.getByTestId('upload-results').getByText(/passages/).first().waitFor();
-  };
-  await upload('assignment', 'assignment.md', 'Assignment sheet', 'Nov 3');
-  await upload('reading', 'reading-canopy.pdf', 'Street Trees and Afternoon Heat: A Neighborhood Comparison', '');
-  log('uploaded the assignment sheet and a 3-page PDF reading');
   await page.getByRole('link', { name: 'Assignment 3: Trees and city heat' }).click();
-  await page.waitForURL(/\/assignments\//);
-  const asgId = page.url().split('/').pop();
+  await page.waitForURL(/\/assignments\/[^/]+\/materials$/);
+  const asgId = page.url().split('/')[4];
 
-  // ---- brief -------------------------------------------------------------------------------------
-  await page.getByTestId('tab-brief').click();
-  await page.getByRole('button', { name: 'Re-read' }).click();
-  await page.getByTestId('brief-item').first().waitFor();
-  const briefKinds = await page.getByTestId('brief-item').allInnerTexts();
-  assert.ok(briefKinds.join(' ').includes('Claim'), 'rubric criteria read from the sheet');
-  await page.getByTestId('brief-item').first().getByRole('button', { name: 'Confirm' }).click();
-  log(`brief: ${briefKinds.length} items read from the sheet with quotes; first confirmed`);
+  // ---- Materials: the assignment sheet and a 3-page PDF reading, then the brief -------------------
+  await page.getByTestId('skip-syllabus').click();
+  await page.getByTestId('row-assignment').getByTestId('intake-file-input').setInputFiles(path.join(root, 'fixtures/fresh', 'assignment.md'));
+  await page.getByTestId('intake-import').click();
+  await page.getByTestId('brief-view').waitFor();
+  const briefText = (await page.getByTestId('brief-view').innerText()).replace(/\s+/g, ' ');
+  assert.ok(/Claim/.test(briefText), 'rubric criteria read from the sheet');
+  await page.getByTestId('row-readings').getByRole('button').first().click();
+  await page.getByTestId('row-readings').getByTestId('intake-file-input').setInputFiles(path.join(root, 'fixtures/fresh', 'reading-canopy.pdf'));
+  await page.getByTestId('row-readings').getByTestId('intake-import').click();
+  await page.getByTestId('row-readings').getByTestId('intake-result').first().waitFor();
+  log(`materials: sheet + 3-page PDF imported; brief shows ${(briefText.match(/points|Claim|Evidence/g) ?? []).length} graded signals with source links`);
 
   // ---- probe (live) ------------------------------------------------------------------------------
   let probe = null;
   if (live) {
-    await page.getByTestId('tab-idea').click(); // a document is needed for the Review tab; probe through the API with the same session instead
     probe = await api('POST', `/assignments/${asgId}/probe`);
     if (probe.error) throw new Error(`probe failed: ${probe.error.message}`);
     log(`probe: ${probe.provider} ${probe.latencyMs}ms ${probe.inputTokens}in/${probe.outputTokens}out $${Number(probe.costUsd).toFixed(6)}`);
   }
 
-  // ---- idea -> thesis -> outline -> draft --------------------------------------------------------
-  await page.getByTestId('tab-idea').click();
+  // ---- Plan: idea -> thesis -> outline -> draft ---------------------------------------------------
+  await page.getByTestId('primary-action').click();
+  await page.waitForURL(/\/plan$/);
   await page.getByTestId('idea-note').fill(fs.readFileSync(path.join(root, 'fixtures/fresh/student-note.txt'), 'utf8').trim());
-  await page.getByTestId('find-directions').click();
-  await page.getByTestId('thesis-option').nth(1).waitFor({ timeout: 120000 });
-  const optionTexts = await page.getByTestId('thesis-option').allInnerTexts();
+  await page.getByTestId('explore-directions').click();
+  await page.getByTestId('direction').nth(1).waitFor({ timeout: 120000 });
+  const optionTexts = await page.getByTestId('direction').allInnerTexts();
   await page.locator('[data-testid^="choose-"]').first().click();
   await page.getByTestId('build-outline').click();
   await page.getByTestId('outline-item').first().waitFor({ timeout: 120000 });
+  await page.getByTestId('draft-from-outline-open').click();
+  await page.getByTestId('draft-allowed').check();
   await page.getByTestId('draft-from-outline').click();
+  await page.waitForURL(/\/draft$/, { timeout: 180000 });
   await page.locator('.ProseMirror p').first().waitFor({ timeout: 180000 });
   log(`idea -> ${optionTexts.length} thesis options -> outline -> draft (${await page.locator('.ProseMirror p').count()} paragraphs)`);
 
@@ -141,20 +136,22 @@ try {
   const CLAIM = 'Tree canopy reduced afternoon surface temperatures.';
   await page.locator('.ProseMirror p').nth(1).click({ clickCount: 3 });
   await page.keyboard.type(CLAIM);
-  await page.getByTestId('save-version').click();
-  await page.getByTestId('save-state').filter({ hasText: /^Saved$/ }).waitFor();
+  await page.getByTestId('save-state').filter({ hasText: /^Saved$/ }).waitFor({ timeout: 15000 });
 
   // ---- Deep review: draft + independent critique + repair + re-check -----------------------------
-  await page.getByTestId('tab-review').click();
+  await page.getByTestId('to-review').click();
+  await page.waitForURL(/\/review$/);
+  await page.getByTestId('review-options').click();
   await page.getByTestId('mode-deep').check({ force: true });
   const estimate = await page.getByTestId('estimate').innerText();
   await page.getByTestId('start-review').click();
-  await page.getByTestId('proposal-card').first().waitFor({ timeout: 300000 });
-  const card = page.getByTestId('proposal-card').filter({ hasText: 'canopy' }).first();
-  await card.waitFor({ timeout: 10000 });
+  await page.getByTestId('recommendation').waitFor({ timeout: 300000 });
+  await page.getByTestId('view-all').click();
+  await page.getByTestId('all-list').getByRole('button', { name: /canopy/i }).first().click();
+  const card = page.getByTestId('recommendation');
   const cardText = (await card.innerText()).replace(/\s+/g, ' ');
-  const providerBadge = (await card.locator('.chip').allInnerTexts()).join(' | ');
-  const replacement = (await card.locator('p', { hasText: 'Suggested' }).first().innerText()).replace(/^Suggested\s*/i, '').replace(/\s+/g, ' ').trim();
+  const providerBadge = (await page.getByTestId('mode-badge').innerText()).replace(/\s+/g, ' ');
+  const replacement = (await card.locator('[data-testid="diff"] p').nth(1).innerText()).replace(/^Suggested\s*/i, '').replace(/\s+/g, ' ').trim();
   log(`critique ready: "${replacement.slice(0, 90)}..." [${providerBadge}]`);
 
   // ---- exact source passage ----------------------------------------------------------------------
@@ -162,52 +159,58 @@ try {
   const ev = card.getByTestId('open-evidence').first();
   if (await ev.count()) {
     await ev.click();
-    await page.getByTestId('source-reader').waitFor();
-    evidence = { heading: (await page.locator('[data-testid="page-heading"]').filter({ hasText: /./ }).evaluateAll((els) => els.find((e) => e.nextElementSibling?.querySelector('mark.src-hit,.src-hit'))?.textContent ?? '')) || null, highlighted: (await page.getByTestId('evidence-highlight').first().innerText().catch(() => null)) ?? null };
-    await page.getByTestId('back-to-draft').click();
+    await page.getByTestId('source-sheet').waitFor();
+    evidence = {
+      heading: (await page.locator('[data-testid="page-heading"]').filter({ hasText: /./ }).evaluateAll((els) => els.find((e) => e.nextElementSibling?.querySelector('mark.src-hit,.src-hit'))?.textContent ?? '')) || null,
+      highlighted: (await page.getByTestId('evidence-highlight').first().innerText().catch(() => null)) ?? null,
+    };
+    await page.keyboard.press('Escape');
+    await page.getByTestId('source-sheet').waitFor({ state: 'detached' });
   }
   // ---- decision ----------------------------------------------------------------------------------
   await card.getByTestId('accept').click();
-  await page.getByTestId('undo').waitFor();
-  const accepted = (await page.locator('.ProseMirror p').nth(1).innerText()).replace(/\s+/g, ' ');
+  await page.getByTestId('last-action').waitFor();
+  const docId = (await api('GET', `/assignments/${asgId}/overview`)).document.id;
+  const headText = async () => (await api('GET', `/documents/${docId}`)).revision.paragraphs.map((p) => p.text);
+  const accepted = (await headText())[1].replace(/\s+/g, ' ');
   log(`accepted: "${accepted.slice(0, 120)}"`);
 
   // ---- source verification of the approved text (Evidence review) --------------------------------
-  await page.getByTestId('tab-review').click();
+  if (!(await page.getByTestId('mode-evidence').count())) await page.getByTestId('review-options').click();
   await page.getByTestId('mode-evidence').check({ force: true });
   await page.getByTestId('start-review').click();
-  await page.waitForFunction(() => document.querySelector('[data-testid="tab-evidence"]') !== null);
   await page.waitForTimeout(500);
   let audits = [];
   for (let i = 0; i < 120 && !audits.length; i++) {
-    const doc = await api('GET', `/documents/${page.url().includes('/assignments/') ? (await api('GET', `/assignments/${asgId}`)).documentId : ''}`);
+    const doc = await api('GET', `/documents/${docId}`);
     const mine = (doc.audits ?? []).filter((a) => /canopy|temperature/i.test(a.claim));
-    if (mine.length && (doc.audits ?? []).some((a) => /evidence|deterministic/.test(a.engine ?? '')) && (await api('GET', `/documents/${doc.document.id}/runs`)).every((r) => ['done', 'failed', 'canceled', 'blocked'].includes(r.status))) audits = mine;
+    if (mine.length && (doc.audits ?? []).some((a) => /evidence|deterministic/.test(a.engine ?? '')) && (await api('GET', `/documents/${docId}/runs`)).every((r) => ['done', 'failed', 'canceled', 'blocked'].includes(r.status))) audits = mine;
     else await page.waitForTimeout(500);
   }
 
   // ---- export ------------------------------------------------------------------------------------
-  await page.getByTestId('open-export').click();
-  await page.getByTestId('export-preview').waitFor();
+  await page.getByTestId('step-export').click();
+  await page.waitForURL(/\/export$/);
+  await page.getByTestId('export-text').waitFor();
   const [dl] = await Promise.all([page.waitForEvent('download'), page.getByTestId('export-txt').click()]);
   const out = path.join(dataDir, dl.suggestedFilename());
   await dl.saveAs(out);
   const exported = fs.readFileSync(out, 'utf8');
   const exportedSha = crypto.createHash('sha256').update(exported).digest('hex');
+  await page.getByTestId('export-more').click();
   const shownHash = await page.getByTestId('export-hash').innerText();
-  const editorText = (await page.locator('.ProseMirror p').allInnerTexts()).join('\n\n');
-  assert.equal(exported, editorText, 'exported text equals the approved text on screen');
+  const editorText = (await headText()).join('\n\n');
+  assert.equal(exported, editorText, 'exported text equals the approved text');
   log(`exported ${exported.split(/\s+/).length} words; sha256 ${exportedSha.slice(0, 16)}...`);
 
   // ---- receipts ----------------------------------------------------------------------------------
   const spend = await api('GET', `/assignments/${asgId}/spend`);
-  const docId = (await api('GET', `/assignments/${asgId}`)).documentId;
   const runs = await api('GET', `/documents/${docId}/runs`);
   const settings = await api('GET', '/settings');
   const providerIds = [...new Set(spend.rows.map((r) => r.provider))];
   const labelOf = (p) => (p.startsWith('fixture') ? 'fixture (deterministic rules, not a model)' : mode === 'mock-live' ? 'MOCK of the live code path (local HTTP stand-in, NOT a provider)' : 'LIVE provider');
   const liveRows = spend.rows.filter((r) => r.paid);
-  if (mode === 'live') { assert.ok(liveRows.length > 0, 'live mode produced paid calls'); assert.ok(!providerIds.some((p) => p.startsWith('fixture')), 'no fixture result in a live run'); assert.ok(!/Demo mode/.test(await page.getByTestId('mode-badge').innerText()), 'UI must say Live'); }
+  if (mode === 'live') { assert.ok(liveRows.length > 0, 'live mode produced paid calls'); assert.ok(!providerIds.some((p) => p.startsWith('fixture')), 'no fixture result in a live run'); assert.ok(!/Sample feedback/.test(await page.getByTestId('mode-badge').innerText()), 'UI must say Live'); }
   if (mode === 'fixture') assert.ok(spend.paidCalls === 0, 'fixture run made no paid call');
   const finalAudit = audits.find((a) => /canopy|temperature/i.test(a.claim));
   receipts = {

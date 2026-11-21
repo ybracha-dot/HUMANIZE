@@ -46,9 +46,8 @@ try {
   // ---------------------------------------------------------------- 2. attendance sample
   const seed = await studio.api('POST', '/demo/seed');
   const before = (await studio.api('GET', `/courses/${seed.courseId}`)).sources.length;
-  for (const [vp, name] of [[DESKTOP, 'desktop'], [PHONE, 'phone']]) {
-    const sampleAsg = name === 'desktop' ? seed.assignmentId : (await studio.api('POST', `/courses/${seed.courseId}/assignments`, { title: 'Phone copy' })).id;
-    if (name === 'phone') { await studio.api('POST', `/assignments/${sampleAsg}/materials`, { items: [{ kind: 'assignment', title: 'Assignment sheet', text: 'Write a short argumentative essay on attendance. Length: 800-1,000 words. Use MLA.' }] }); }
+  for (const [vp, name] of [[PHONE, 'phone'], [DESKTOP, 'desktop']]) { // phone first: it only looks; desktop then resolves the conflict on the same real sample
+    const sampleAsg = seed.assignmentId;
     const { page, errors } = await studio.newPage(vp);
     await page.goto(`${studio.base}/assignments/${sampleAsg}`);
     await page.getByTestId('brief-view').waitFor();

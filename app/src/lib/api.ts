@@ -81,6 +81,7 @@ export async function download(url: string, body: unknown, fallbackName: string)
   return {
     hash: res.headers.get('x-text-hash'),
     revisionId: res.headers.get('x-revision-id'),
+    exportId: res.headers.get('x-export-id'),
     name,
   };
 }

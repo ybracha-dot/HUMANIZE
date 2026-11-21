@@ -5,6 +5,10 @@ A private writing workspace: course material + rubric + your idea or draft + a s
 - Repository: https://github.com/ybracha-dot/HUMANIZE, branch `claude/elegant-fermat-lrojox` (the exact commit is in `git log -1`).
 - Local demo status: **works with no key** (fixture mode). Live provider: **not run, no credentials** in the build environment; the one remaining step is below.
 
+## The redesigned app (five stages)
+
+The assignment page is now Materials, Plan, Draft, Review, Export, each at its own URL. What changed, the before/after screenshots, what was checked and what was not: `docs/redesign/README.md`. Browser journeys: `cd app && npm run test:smoke`.
+
 ## Launch
 Needs Node >= 22.13 (built-in `node:sqlite`).
 ```bash
